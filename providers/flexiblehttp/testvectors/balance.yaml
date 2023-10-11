@@ -1,0 +1,40 @@
+---
+https://raw.githubusercontent.com/iden3/claim-schema-vocab/main/schemas/json-ld/balance.json-ld#Balance:
+  provider:
+    url: https://api-testnet.polygonscan.com/api/currency/{{  credentialSubject.currency }}
+    method: GET
+  requestSchema:
+    params:
+      module: account
+      action: balance
+      address: "{{ credentialSubject.address }}"
+      apikey: RET2WHC1B3UDM9PQQ12ZUG2ZE289D1TCY9
+    headers:
+      Content-Type: application/json
+  responseSchema:
+    type: json
+    properties:
+      result:
+        type: string
+        match: credentialSubject.balance
+https://raw.githubusercontent.com/iden3/claim-schema-vocab/main/schemas/json-ld/balance.json-ld#DeepEmbeded:
+  responseSchema:
+    type: json
+    properties:
+      wallet.eth.balance:
+        type: string
+        match: credentialSubject.balance
+https://raw.githubusercontent.com/iden3/claim-schema-vocab/main/schemas/json-ld/balance.json-ld#EmbededArray:
+  responseSchema:
+    type: json
+    properties:
+      wallet.eth[0].balance:
+        type: string
+        match: credentialSubject.balance
+https://raw.githubusercontent.com/iden3/claim-schema-vocab/main/schemas/json-ld/balance.json-ld#EmbededValuesArray:
+  responseSchema:
+    type: json
+    properties:
+      wallet.eth[0]:
+        type: string
+        match: credentialSubject.balance
