@@ -131,7 +131,7 @@ func NewPackageManager(
 		}
 		v, err := strconv.Atoi(chainID)
 		if err != nil {
-			return nil, errors.Errorf("invalid chainID %s", chainID)
+			return nil, errors.Errorf("invalid chainID '%s': %v", chainID, err)
 		}
 		states.contracts[v] = stateContract
 	}

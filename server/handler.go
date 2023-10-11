@@ -100,7 +100,9 @@ func (h *Handlers) Run(port int) error {
 		}
 	})
 
-	return http.ListenAndServe(fmt.Sprintf(":%d", port), nil)
+	host := fmt.Sprintf("localhost:%d", port)
+	log.Printf("listening on %s\n", host)
+	return http.ListenAndServe(host, nil)
 }
 
 func verifyMessageAttributes(message *iden3comm.BasicMessage) error {

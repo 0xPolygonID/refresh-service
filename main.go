@@ -17,6 +17,7 @@ import (
 type KVstring map[string]string
 
 func (c *KVstring) Decode(value string) error {
+	value = strings.Trim(value, "\"")
 	if value == "" {
 		*c = make(map[string]string)
 		return nil
