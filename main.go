@@ -39,7 +39,7 @@ func (c *KVstring) Decode(value string) error {
 type Config struct {
 	SupportedIssuers        KVstring `envconfig:"SUPPORTED_ISSUERS" required:"true"`
 	IPFSURL                 string   `envconfig:"IPFS_URL" required:"true"`
-	ServerPort              int      `envconfig:"SERVER_PORT" default:"8002"`
+	ServerHost              string   `envconfig:"SERVER_HOST" default:"localhost:8002"`
 	HTTPConfigPath          string   `envconfig:"HTTP_CONFIG_PATH" default:"config.yaml"`
 	SupportedRPC            KVstring `envconfig:"SUPPORTED_RPC" required:"true"`
 	SupportedStateContracts KVstring `envconfig:"SUPPORTED_STATE_CONTRACTS" required:"true"`
@@ -88,5 +88,5 @@ func main() {
 		refreshService,
 	)
 
-	log.Fatal(h.Run(cfg.ServerPort))
+	log.Fatal(h.Run(cfg.ServerHost))
 }

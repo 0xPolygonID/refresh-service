@@ -29,7 +29,7 @@ func NewHandlers(
 	}
 }
 
-func (h *Handlers) Run(port int) error {
+func (h *Handlers) Run(host string) error {
 	http.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
 		envelop, err := io.ReadAll(r.Body)
 		if err != nil {
@@ -100,8 +100,7 @@ func (h *Handlers) Run(port int) error {
 		}
 	})
 
-	host := fmt.Sprintf("localhost:%d", port)
-	log.Printf("listening on %s\n", host)
+	log.Printf("listening on: %s\n", host)
 	return http.ListenAndServe(host, nil)
 }
 
