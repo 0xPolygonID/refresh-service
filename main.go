@@ -4,6 +4,7 @@ import (
 	"log"
 	"strings"
 
+	_ "github.com/0xPolygonID/refresh-service/logger"
 	"github.com/0xPolygonID/refresh-service/packagemanager"
 	"github.com/0xPolygonID/refresh-service/providers/flexiblehttp"
 	"github.com/0xPolygonID/refresh-service/server"
@@ -83,9 +84,13 @@ func main() {
 		flexiblehttp,
 	)
 
-	h := server.NewHandlers(
-		packageManager,
+	agentService := service.NewAgentService(
 		refreshService,
+		packageManager,
+	)
+
+	h := server.NewHandlers(
+		agentService,
 	)
 
 	log.Fatal(h.Run(cfg.ServerHost))

@@ -4,18 +4,22 @@ go 1.20
 
 require (
 	github.com/ethereum/go-ethereum v1.13.1
+	github.com/go-chi/chi v1.5.5
+	github.com/go-chi/chi/v5 v5.0.10
 	github.com/google/uuid v1.3.0
 	github.com/iden3/contracts-abi/state/go/abi v1.0.1
 	github.com/iden3/go-circuits/v2 v2.0.0
 	github.com/iden3/go-iden3-core/v2 v2.0.0
 	github.com/iden3/go-jwz/v2 v2.0.0
-	github.com/iden3/go-schema-processor/v2 v2.0.0
-	github.com/iden3/iden3comm/v2 v2.0.1-0.20230921145703-8b50e022f789
+	github.com/iden3/go-schema-processor/v2 v2.0.1-0.20231016121900-16a1e1fb9a09
+	github.com/iden3/iden3comm/v2 v2.0.1-0.20231018150007-090f3e08fc4d
 	github.com/ipfs/go-ipfs-api v0.6.0
 	github.com/kelseyhightower/envconfig v1.4.0
 	github.com/piprate/json-gold v0.5.1-0.20230111113000-6ddbe6e6f19f
 	github.com/pkg/errors v0.9.1
+	github.com/rs/cors v1.7.0
 	github.com/stretchr/testify v1.8.4
+	go.uber.org/zap v1.24.0
 	gopkg.in/yaml.v3 v3.0.1
 )
 
@@ -83,6 +87,8 @@ require (
 	github.com/tklauser/go-sysconf v0.3.12 // indirect
 	github.com/tklauser/numcpus v0.6.1 // indirect
 	github.com/whyrusleeping/tar-utils v0.0.0-20201201191210-20a61371de5b // indirect
+	go.uber.org/atomic v1.11.0 // indirect
+	go.uber.org/multierr v1.11.0 // indirect
 	golang.org/x/crypto v0.12.0 // indirect
 	golang.org/x/exp v0.0.0-20230810033253-352e893a4cad // indirect
 	golang.org/x/mod v0.11.0 // indirect

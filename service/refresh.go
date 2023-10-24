@@ -2,7 +2,6 @@ package service
 
 import (
 	"encoding/json"
-	"fmt"
 	"strings"
 	"time"
 
@@ -11,10 +10,12 @@ import (
 	"github.com/iden3/go-schema-processor/v2/merklize"
 	"github.com/iden3/go-schema-processor/v2/verifiable"
 	"github.com/piprate/json-gold/ld"
+	"github.com/pkg/errors"
 )
 
 var (
-	errIndexSlotsNotUpdated = fmt.Errorf("no index fields were updated")
+	ErrCredentialNotUpdatable = errors.New("not updatable")
+	errIndexSlotsNotUpdated   = errors.New("no index fields were updated")
 )
 
 type RefreshService struct {
@@ -36,92 +37,109 @@ func NewRefreshService(
 }
 
 type credentialRequest struct {
-	CredentialSchema  string                 `json:"credentialSchema"`
-	Type              string                 `json:"type"`
-	CredentialSubject map[string]interface{} `json:"credentialSubject"`
-	Expiration        int64                  `json:"expiration"`
+	CredentialSchema  string                     `json:"credentialSchema"`
+	Type              string                     `json:"type"`
+	CredentialSubject map[string]interface{}     `json:"credentialSubject"`
+	Expiration        int64                      `json:"expiration"`
+	Updatable         bool                       `json:"updatable,omitempty"`
+	RefreshService    *verifiable.RefreshService `json:"refreshService,omitempty"`
 }
 
-func (rs *RefreshService) Process(issuer string, owner string, ids []string) ([]*verifiable.W3CCredential, error) {
-	potentialCredentialUpdates, err := rs.issuerService.ListOfClaimsByID(issuer, ids)
+func (rs *RefreshService) Process(issuer string,
+	owner string, id string) (
+	verifiable.W3CCredential, error) {
+	credential, err := rs.issuerService.GetClaimByID(issuer, id)
 	if err != nil {
-		return nil, err
-	}
-	refreshedCredentials := make([]*verifiable.W3CCredential, 0, len(potentialCredentialUpdates))
-	for _, credential := range potentialCredentialUpdates {
-		err = checkOwnerShip(credential, owner)
-		if err != nil {
-			return nil, err
-		}
-		err = isUpdatable(credential)
-		if err != nil {
-			return nil, err
-		}
-
-		credentialBytes, err := json.Marshal(credential)
-		if err != nil {
-			return nil, err
-		}
-		credentialType, err := merklize.Options{
-			DocumentLoader: rs.documentLoader,
-		}.TypeIDFromContext(credentialBytes, credential.CredentialSubject["type"].(string))
-		if err != nil {
-			return nil, err
-		}
-
-		flexibleHTTP, err := rs.providers.ProduceFlexibleHTTP(credentialType)
-		if err != nil {
-			return nil, err
-		}
-		updatedFields, err := flexibleHTTP.Provide(credential.CredentialSubject)
-		if err != nil {
-			return nil, err
-		}
-
-		if err := isUpdatedIndexSlots(credentialBytes,
-			credential.CredentialSubject, updatedFields); err != nil {
-			return nil, err
-		}
-
-		for k, v := range updatedFields {
-			credential.CredentialSubject[k] = v
-		}
-
-		credentialRequest := credentialRequest{
-			CredentialSchema:  credential.CredentialSchema.ID,
-			Type:              credential.CredentialSubject["type"].(string),
-			CredentialSubject: credential.CredentialSubject,
-			Expiration:        time.Now().Add(flexibleHTTP.Settings.TimeExpiration).Unix(),
-		}
-
-		refreshedID, err := rs.issuerService.CreateCredential(issuer, credentialRequest)
-		if err != nil {
-			return nil, err
-		}
-		rc, err := rs.issuerService.GetClaimByID(issuer, refreshedID)
-		if err != nil {
-			return nil, err
-		}
-		refreshedCredentials = append(refreshedCredentials, &rc)
+		return verifiable.W3CCredential{}, err
 	}
 
-	return refreshedCredentials, nil
+	err = isUpdatable(credential)
+	if err != nil {
+		return verifiable.W3CCredential{},
+			errors.Wrapf(ErrCredentialNotUpdatable,
+				"credential '%s': %v", credential.ID, err)
+	}
+	err = checkOwnerShip(credential, owner)
+	if err != nil {
+		return verifiable.W3CCredential{},
+			errors.Wrapf(ErrCredentialNotUpdatable, "credential '%s': %v", credential.ID, err)
+	}
+
+	credentialBytes, err := json.Marshal(credential)
+	if err != nil {
+		return verifiable.W3CCredential{}, err
+	}
+	credentialType, err := merklize.Options{
+		DocumentLoader: rs.documentLoader,
+	}.TypeIDFromContext(credentialBytes, credential.CredentialSubject["type"].(string))
+	if err != nil {
+		return verifiable.W3CCredential{}, err
+	}
+
+	flexibleHTTP, err := rs.providers.ProduceFlexibleHTTP(credentialType)
+	if err != nil {
+		return verifiable.W3CCredential{},
+			errors.Wrapf(ErrCredentialNotUpdatable,
+				"for credential '%s' not possible to find a data provider", credential.ID, err)
+
+	}
+	updatedFields, err := flexibleHTTP.Provide(credential.CredentialSubject)
+	if err != nil {
+		return verifiable.W3CCredential{}, err
+	}
+
+	if err := isUpdatedIndexSlots(credentialBytes,
+		credential.CredentialSubject, updatedFields); err != nil {
+		return verifiable.W3CCredential{},
+			errors.Wrapf(ErrCredentialNotUpdatable,
+				"for credential '%s' index slots: %v", credential.ID, err)
+	}
+
+	for k, v := range updatedFields {
+		credential.CredentialSubject[k] = v
+	}
+
+	credentialRequest := credentialRequest{
+		CredentialSchema:  credential.CredentialSchema.ID,
+		Type:              credential.CredentialSubject["type"].(string),
+		CredentialSubject: credential.CredentialSubject,
+		Expiration:        time.Now().Add(flexibleHTTP.Settings.TimeExpiration).Unix(),
+		Updatable:         true,
+		RefreshService:    credential.RefreshService,
+	}
+
+	refreshedID, err := rs.issuerService.CreateCredential(issuer, credentialRequest)
+	if err != nil {
+		return verifiable.W3CCredential{}, err
+	}
+	rc, err := rs.issuerService.GetClaimByID(issuer, refreshedID)
+	if err != nil {
+		return verifiable.W3CCredential{}, err
+	}
+
+	return rc, nil
 }
 
 func isUpdatable(credential verifiable.W3CCredential) error {
 	if credential.Expiration.After(time.Now()) {
-		return fmt.Errorf("credential '%s' is not expired", credential.ID)
+		return errors.New("expired")
 	}
 	if credential.CredentialSubject["id"] == "" {
-		return fmt.Errorf("the credential '%s' does not have an id", credential.ID)
+		return errors.New("subject does not have an id")
+	}
+	coreClaim, err := credential.GetCoreClaimFromProof(verifiable.BJJSignatureProofType)
+	if err != nil {
+		return errors.Errorf("unable to get core claim from BJJSignatureProofType: %v", err)
+	}
+	if !coreClaim.GetFlagUpdatable() {
+		return errors.New("updatable flag is not set")
 	}
 	return nil
 }
 
 func checkOwnerShip(credential verifiable.W3CCredential, owner string) error {
 	if credential.CredentialSubject["id"] != owner {
-		return fmt.Errorf("the credential was issued for another identity. expected %s actual %s",
-			owner, credential.CredentialSubject["id"])
+		return errors.New("not owner of the credential")
 	}
 	return nil
 }

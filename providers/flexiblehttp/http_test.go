@@ -2,6 +2,7 @@ package flexiblehttp
 
 import (
 	"bytes"
+	"encoding/json"
 	"net/http"
 	"net/url"
 	"testing"
@@ -135,11 +136,138 @@ func TestDecodeResponse(t *testing.T) {
 			require.NoError(t, err)
 			provider, err := factory.ProduceFlexibleHTTP(tt.credentialType)
 			require.NoError(t, err)
-			body := bytes.NewReader(tt.responseBody)
-			updatedFields, err := provider.DecodeResponse(body, "json")
+			var response map[string]interface{}
+			err = json.NewDecoder(bytes.NewReader(tt.responseBody)).Decode(&response)
+			require.NoError(t, err)
+			updatedFields, err := provider.DecodeResponse(response)
 			require.NoError(t, err)
 
 			require.Equal(t, tt.expectedUpdatedFields, updatedFields)
+		})
+	}
+}
+
+func TestCastToType(t *testing.T) {
+	tests := []struct {
+		name        string
+		jsonBody    string
+		convertType string
+		expected    interface{}
+	}{
+		// string
+		{
+			name:        "string to string",
+			jsonBody:    `{"data": "test"}`,
+			convertType: "string",
+			expected:    "test",
+		},
+		{
+			name:        "string to int",
+			jsonBody:    `{"data": "123"}`,
+			convertType: "integer",
+			expected:    123,
+		},
+		{
+			name:        "string to float",
+			jsonBody:    `{"data": "123.0000001"}`,
+			convertType: "double",
+			expected:    123.0000001,
+		},
+		{
+			name:        "string to bool",
+			jsonBody:    `{"data": "true"}`,
+			convertType: "boolean",
+			expected:    true,
+		},
+		{
+			name:        "large string to float",
+			jsonBody:    `{"data": "123456789012345678901234567890.12345"}`,
+			convertType: "double",
+			expected:    123456789012345678901234567890.12345,
+		},
+		// float
+		{
+			name:        "float to string",
+			jsonBody:    `{"data": 123.0000001}`,
+			convertType: "string",
+			expected:    "123.0000001",
+		},
+		{
+			name:        "float to integer",
+			jsonBody:    `{"data": 123}`,
+			convertType: "integer",
+			expected:    123,
+		},
+		{
+			name:        "float to float",
+			jsonBody:    `{"data": 123.0000001}`,
+			convertType: "float",
+			expected:    123.0000001,
+		},
+		{
+			name:        "large float to string",
+			jsonBody:    `{"data": 123456789012345678901234567890.12345}`,
+			convertType: "string",
+			expected:    "1.23456789e+29",
+		},
+		// boolean
+		{
+			name:        "bool to string",
+			jsonBody:    `{"data": true}`,
+			convertType: "string",
+			expected:    "true",
+		},
+		{
+			name:        "bool to integer",
+			jsonBody:    `{"data": true}`,
+			convertType: "integer",
+			expected:    1,
+		},
+		{
+			name:        "bool to bool",
+			jsonBody:    `{"data": true}`,
+			convertType: "boolean",
+			expected:    true,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			var jsonMap map[string]interface{}
+			err := json.Unmarshal([]byte(tt.jsonBody), &jsonMap)
+			require.NoError(t, err)
+			actual, err := castToType(jsonMap["data"], tt.convertType)
+			require.NoError(t, err)
+			require.Equal(t, tt.expected, actual)
+		})
+	}
+}
+
+func TestCastToType_Error(t *testing.T) {
+	tests := []struct {
+		name        string
+		jsonBody    string
+		convertType string
+	}{
+		{
+			name:        "large string to int",
+			jsonBody:    `{"data": "123456789012345678901234567890"}`,
+			convertType: "integer",
+		},
+		{
+			name:        "large float to integer",
+			jsonBody:    `{"data": 123456789012345678901234567890.12345}`,
+			convertType: "integer",
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			var jsonMap map[string]interface{}
+			err := json.Unmarshal([]byte(tt.jsonBody), &jsonMap)
+			require.NoError(t, err)
+			_, err = castToType(jsonMap["data"], tt.convertType)
+			require.Error(t, err)
 		})
 	}
 }

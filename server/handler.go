@@ -1,115 +1,74 @@
 package server
 
 import (
-	"encoding/json"
-	"fmt"
 	"io"
-	"log"
 	"net/http"
+	"time"
 
+	"github.com/0xPolygonID/refresh-service/logger"
 	"github.com/0xPolygonID/refresh-service/service"
-	"github.com/google/uuid"
-	"github.com/iden3/iden3comm/v2"
-	"github.com/iden3/iden3comm/v2/packers"
-	iden3Protocol "github.com/iden3/iden3comm/v2/protocol"
+	"github.com/go-chi/chi/middleware"
+	"github.com/go-chi/chi/v5"
+	"github.com/pkg/errors"
+	"github.com/rs/cors"
 )
 
 type Handlers struct {
-	packageManager *iden3comm.PackageManager
-	refreshService *service.RefreshService
+	agentService *service.AgentService
 }
 
 func NewHandlers(
-	packageManager *iden3comm.PackageManager,
-	refreshService *service.RefreshService,
+	agentService *service.AgentService,
 ) *Handlers {
 	return &Handlers{
-		packageManager: packageManager,
-		refreshService: refreshService,
+		agentService: agentService,
 	}
 }
 
 func (h *Handlers) Run(host string) error {
-	http.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
-		envelop, err := io.ReadAll(r.Body)
+	router := chi.NewRouter()
+	// Basic CORS
+	corsMiddleware := cors.New(cors.Options{
+		AllowedOrigins: []string{"localhost", "127.0.0.1", "*"},
+		AllowedMethods: []string{"POST"},
+		AllowedHeaders: []string{"Accept", "Authorization", "Content-Type",
+			"X-CSRF-Token"},
+		AllowCredentials: true,
+	})
+	router.Use(corsMiddleware.Handler)
+	router.Use(middleware.RequestID)
+	router.Use(middleware.RealIP)
+	router.Use(zapContextLogger)
+	router.Use(middleware.Recoverer)
+
+	router.Post("/", func(w http.ResponseWriter, r *http.Request) {
+		envelope, err := io.ReadAll(io.LimitReader(r.Body, 1024*1024))
 		if err != nil {
-			internalError(w, err)
+			logger.DefaultLogger.Errorf("failed to read request body: %v", err)
+			http.Error(w, err.Error(), http.StatusBadRequest)
 			return
 		}
-		message, _, err := h.packageManager.Unpack(envelop)
+
+		response, err := h.agentService.Process(envelope)
 		if err != nil {
-			internalError(w, err)
-			return
-		}
-		if err := verifyMessageAttributes(message); err != nil {
-			internalError(w, err)
+			handleError(w, err)
 			return
 		}
 
-		switch message.Type {
-		case iden3Protocol.CredentialRefreshMessageType:
-			var bodyMessage iden3Protocol.CredentialRefreshMessageBody
-			err := json.Unmarshal(message.Body, &bodyMessage)
-			if err != nil {
-				internalError(w, err)
-				return
-			}
-			ids := make([]string, 0, len(bodyMessage.Credentials))
-			for _, credential := range bodyMessage.Credentials {
-				ids = append(ids, credential.ID)
-			}
-
-			refreshed, err := h.refreshService.Process(message.To, message.From, ids)
-			if err != nil {
-				log.Printf("failed to process refresh: %v", err)
-				internalError(w, err)
-				return
-			}
-
-			// TODO (illia-korotia): currenly our issuance response supports only one credential
-			r := refreshed[0]
-			issuenceResponse := iden3Protocol.CredentialIssuanceMessage{
-				ID:       uuid.New().String(),
-				Type:     iden3Protocol.CredentialIssuanceResponseMessageType,
-				ThreadID: message.ThreadID,
-				Body: iden3Protocol.IssuanceMessageBody{
-					Credential: *r,
-				},
-				From: message.To,
-				To:   message.From,
-			}
-			payload, err := json.Marshal(issuenceResponse)
-			if err != nil {
-				internalError(w, err)
-				return
-			}
-
-			envelop, err := h.packageManager.Pack(packers.MediaTypePlainMessage, payload, nil)
-			if err != nil {
-				internalError(w, err)
-				return
-			}
-
-			w.Header().Add("Content-Type", "application/json")
-			w.WriteHeader(http.StatusCreated)
-			w.Write(envelop)
-			return
-		default:
-			internalError(w, fmt.Errorf("invalid message type"))
+		w.WriteHeader(http.StatusOK)
+		_, err = w.Write(response)
+		if err != nil {
+			logger.DefaultLogger.Errorf("failed to write response: %v", err)
+			http.Error(w, err.Error(), http.StatusInternalServerError)
 			return
 		}
 	})
 
-	log.Printf("listening on: %s\n", host)
-	return http.ListenAndServe(host, nil)
-}
-
-func verifyMessageAttributes(message *iden3comm.BasicMessage) error {
-	if message.From == "" {
-		return fmt.Errorf("missing from")
+	logger.DefaultLogger.Infof("Server starting on host '%s'", host)
+	httpServer := &http.Server{
+		Addr:              host,
+		Handler:           router,
+		ReadHeaderTimeout: 10 * time.Second,
 	}
-	if message.To == "" {
-		return fmt.Errorf("missing to")
-	}
-	return nil
+	return errors.WithStack(httpServer.ListenAndServe())
 }

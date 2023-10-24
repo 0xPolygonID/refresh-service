@@ -6,7 +6,15 @@ import (
 	"fmt"
 	"net/http"
 
+	"github.com/0xPolygonID/refresh-service/logger"
 	"github.com/iden3/go-schema-processor/v2/verifiable"
+	"github.com/pkg/errors"
+)
+
+var (
+	ErrIssuerNotSupported = errors.New("issuer is not supported")
+	ErrGetClaim           = errors.New("failed to get claim")
+	ErrCreateClaim        = errors.New("failed to create claim")
 )
 
 // IssuerService is service for communication with issuer node
@@ -25,42 +33,30 @@ func NewIssuerService(supportedIssuers map[string]string, client *http.Client) *
 	}
 }
 
-func (is *IssuerService) ListOfClaimsByID(issuerDID string,
-	claimIDs []string) (credential []verifiable.W3CCredential, error error) {
-	credential = make([]verifiable.W3CCredential, 0, len(claimIDs))
-
-	for _, claimID := range claimIDs {
-		c, err := is.GetClaimByID(issuerDID, claimID)
-		if err != nil {
-			return credential, err
-		}
-		credential = append(credential, c)
-	}
-
-	return credential, nil
-}
-
 func (is *IssuerService) GetClaimByID(issuerDID, claimID string) (
 	credential verifiable.W3CCredential, error error) {
 	issuerNode, err := is.getIssuerURL(issuerDID)
 	if err != nil {
 		return credential, err
 	}
-	fmt.Printf("use issuer node '%s' for issuer '%s'", issuerNode, issuerDID)
+	logger.DefaultLogger.Infof("use issuer node '%s' for issuer '%s'", issuerNode, issuerDID)
 
 	resp, err := is.do.Get(
 		fmt.Sprintf("%s/api/v1/identities/%s/claims/%s", issuerNode, issuerDID, claimID),
 	)
 	if err != nil {
-		return credential, err
+		return credential, errors.Wrapf(ErrGetClaim,
+			"failed http GET request: '%v'", err)
 	}
 	defer resp.Body.Close()
 	if resp.StatusCode != http.StatusOK {
-		return credential, fmt.Errorf("invalid status code")
+		return credential, errors.Wrapf(ErrGetClaim,
+			"invalid status code: '%d'", resp.StatusCode)
 	}
 	err = json.NewDecoder(resp.Body).Decode(&credential)
 	if err != nil {
-		return credential, err
+		return credential, errors.Wrapf(ErrGetClaim,
+			"failed to decode response: '%v'", err)
 	}
 	return credential, nil
 }
@@ -73,7 +69,7 @@ func (is *IssuerService) CreateCredential(issuerDID string, credentialRequest cr
 	if err != nil {
 		return id, err
 	}
-	fmt.Printf("use issuer node '%s' for issuer '%s'", issuerNode, issuerDID)
+	logger.DefaultLogger.Infof("use issuer node '%s' for issuer '%s'", issuerNode, issuerDID)
 
 	body := bytes.NewBuffer([]byte{})
 	json.NewEncoder(body).Encode(credentialRequest)
@@ -83,18 +79,21 @@ func (is *IssuerService) CreateCredential(issuerDID string, credentialRequest cr
 		body,
 	)
 	if err != nil {
-		return id, err
+		return id, errors.Wrapf(ErrCreateClaim,
+			"failed http POST request: %v", err)
 	}
 	defer resp.Body.Close()
 	if resp.StatusCode != http.StatusAccepted {
-		return id, fmt.Errorf("invalid status code")
+		return id, errors.Wrap(ErrCreateClaim,
+			"invalid status code")
 	}
 	responseBody := struct {
 		ID string `json:"id"`
 	}{}
 	err = json.NewDecoder(resp.Body).Decode(&responseBody)
 	if err != nil {
-		return id, err
+		return id, errors.Wrapf(ErrCreateClaim,
+			"failed to decode response: %v", err)
 	}
 	return responseBody.ID, nil
 }
@@ -104,9 +103,8 @@ func (is *IssuerService) getIssuerURL(issuerDID string) (string, error) {
 	if !ok {
 		url, ok = is.supportedIssuers["*"]
 		if !ok {
-			return "", fmt.Errorf("issuer %s is not supported", issuerDID)
+			return "", errors.Wrapf(ErrIssuerNotSupported, "id '%s'", issuerDID)
 		}
-		fmt.Println("use default issuer URL")
 	}
 	return url, nil
 }

@@ -1,10 +1,10 @@
 package flexiblehttp
 
 import (
-	"fmt"
 	"net/http"
 	"os"
 
+	"github.com/pkg/errors"
 	"gopkg.in/yaml.v3"
 )
 
@@ -34,7 +34,7 @@ func NewFactoryFlexibleHTTP(configPath string, httpcli *http.Client) (FactoryFle
 func (factory *FactoryFlexibleHTTP) ProduceFlexibleHTTP(credentialType string) (FlexibleHTTP, error) {
 	fh, ok := factory.configuration[credentialType]
 	if !ok {
-		return FlexibleHTTP{}, fmt.Errorf("not found configuration for %s", credentialType)
+		return FlexibleHTTP{}, errors.Errorf("not found configuration for '%s'", credentialType)
 	}
 	fh.httpcli = factory.httpcli
 	return fh, nil
