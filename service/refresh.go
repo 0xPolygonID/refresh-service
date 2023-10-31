@@ -88,7 +88,12 @@ func (rs *RefreshService) Process(issuer string,
 		return verifiable.W3CCredential{}, err
 	}
 
-	if err := isUpdatedIndexSlots(credentialBytes,
+	uploadedContexts, err := rs.loadContexts(credential.Context)
+	if err != nil {
+		return verifiable.W3CCredential{}, err
+	}
+
+	if err := isUpdatedIndexSlots(uploadedContexts,
 		credential.CredentialSubject, updatedFields); err != nil {
 		return verifiable.W3CCredential{},
 			errors.Wrapf(ErrCredentialNotUpdatable,
@@ -118,6 +123,33 @@ func (rs *RefreshService) Process(issuer string,
 	}
 
 	return rc, nil
+}
+
+func (rs *RefreshService) loadContexts(contexts []string) ([]byte, error) {
+	type uploadedContexts struct {
+		Contexts []interface{} `json:"@context"`
+	}
+	var res uploadedContexts
+	for _, context := range contexts {
+		remoteDocument, err := rs.documentLoader.LoadDocument(context)
+		if err != nil {
+			return nil, err
+		}
+		document, ok := remoteDocument.Document.(map[string]interface{})
+		if !ok {
+			return nil, errors.New("invalid context")
+		}
+		ldContext, ok := document["@context"]
+		if !ok {
+			return nil, errors.New("@context key word didn't find")
+		}
+		if v, ok := ldContext.([]interface{}); ok {
+			res.Contexts = append(res.Contexts, v...)
+		} else {
+			res.Contexts = append(res.Contexts, ldContext)
+		}
+	}
+	return json.Marshal(res)
 }
 
 func isUpdatable(credential verifiable.W3CCredential) error {
