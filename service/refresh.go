@@ -92,7 +92,7 @@ func (rs *RefreshService) Process(issuer string,
 		credential.CredentialSubject, updatedFields); err != nil {
 		return verifiable.W3CCredential{},
 			errors.Wrapf(ErrCredentialNotUpdatable,
-				"for credential '%s' index slots: %v", credential.ID, err)
+				"for credential '%s' index slots parsing process error: %v", credential.ID, err)
 	}
 
 	for k, v := range updatedFields {

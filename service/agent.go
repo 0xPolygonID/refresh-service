@@ -47,7 +47,7 @@ func (as *AgentService) Process(envelop []byte) (
 		}
 
 		refreshed, err := as.refreshService.Process(message.To,
-			message.From, bodyMessage.Credential.ID)
+			message.From, bodyMessage.ID)
 		if err != nil {
 			return nil, err
 		}

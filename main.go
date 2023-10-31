@@ -4,6 +4,8 @@ import (
 	"log"
 	"strings"
 
+	_ "embed"
+
 	_ "github.com/0xPolygonID/refresh-service/logger"
 	"github.com/0xPolygonID/refresh-service/packagemanager"
 	"github.com/0xPolygonID/refresh-service/providers/flexiblehttp"
@@ -13,6 +15,12 @@ import (
 	shell "github.com/ipfs/go-ipfs-api"
 	"github.com/kelseyhightower/envconfig"
 	"github.com/pkg/errors"
+)
+
+var (
+	w3cSchemaURL = "https://www.w3.org/2018/credentials/v1"
+	//go:embed w3cSchema.json
+	w3cSchemaBody []byte
 )
 
 type KVstring map[string]string
@@ -67,8 +75,14 @@ func main() {
 		nil,
 	)
 
+	opts := loaders.WithEmbeddedDocumentBytes(w3cSchemaURL, w3cSchemaBody)
+	memoryCacheEngine, err := loaders.NewMemoryCacheEngine(opts)
+	if err != nil {
+		log.Fatalf("failed init memory cache engine: %v", err)
+	}
 	ipfsCli := shell.NewShell(cfg.IPFSURL)
-	documentLoader := loaders.NewDocumentLoader(ipfsCli, "")
+	documentLoader := loaders.NewDocumentLoader(ipfsCli, "",
+		loaders.WithCacheEngine(memoryCacheEngine))
 
 	flexiblehttp, err := flexiblehttp.NewFactoryFlexibleHTTP(
 		cfg.HTTPConfigPath,

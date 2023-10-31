@@ -11,8 +11,8 @@ require (
 	github.com/iden3/go-circuits/v2 v2.0.0
 	github.com/iden3/go-iden3-core/v2 v2.0.0
 	github.com/iden3/go-jwz/v2 v2.0.0
-	github.com/iden3/go-schema-processor/v2 v2.0.1-0.20231016121900-16a1e1fb9a09
-	github.com/iden3/iden3comm/v2 v2.0.1-0.20231018150007-090f3e08fc4d
+	github.com/iden3/go-schema-processor/v2 v2.1.0
+	github.com/iden3/iden3comm/v2 v2.0.1-0.20231030214854-7a0511d0e7cc
 	github.com/ipfs/go-ipfs-api v0.6.0
 	github.com/kelseyhightower/envconfig v1.4.0
 	github.com/piprate/json-gold v0.5.1-0.20230111113000-6ddbe6e6f19f
