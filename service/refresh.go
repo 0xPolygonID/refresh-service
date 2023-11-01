@@ -41,8 +41,8 @@ type credentialRequest struct {
 	Type              string                     `json:"type"`
 	CredentialSubject map[string]interface{}     `json:"credentialSubject"`
 	Expiration        int64                      `json:"expiration"`
-	Updatable         bool                       `json:"updatable,omitempty"`
 	RefreshService    *verifiable.RefreshService `json:"refreshService,omitempty"`
+	RevNonce          *uint64                    `json:"revNonce,omitempty"`
 }
 
 func (rs *RefreshService) Process(issuer string,
@@ -104,13 +104,18 @@ func (rs *RefreshService) Process(issuer string,
 		credential.CredentialSubject[k] = v
 	}
 
+	revNonce, err := extractRevocationNonce(credential)
+	if err != nil {
+		return verifiable.W3CCredential{}, err
+	}
+
 	credentialRequest := credentialRequest{
 		CredentialSchema:  credential.CredentialSchema.ID,
 		Type:              credential.CredentialSubject["type"].(string),
 		CredentialSubject: credential.CredentialSubject,
 		Expiration:        time.Now().Add(flexibleHTTP.Settings.TimeExpiration).Unix(),
-		Updatable:         true,
 		RefreshService:    credential.RefreshService,
+		RevNonce:          &revNonce,
 	}
 
 	refreshedID, err := rs.issuerService.CreateCredential(issuer, credentialRequest)
@@ -159,13 +164,6 @@ func isUpdatable(credential verifiable.W3CCredential) error {
 	if credential.CredentialSubject["id"] == "" {
 		return errors.New("subject does not have an id")
 	}
-	coreClaim, err := credential.GetCoreClaimFromProof(verifiable.BJJSignatureProofType)
-	if err != nil {
-		return errors.Errorf("unable to get core claim from BJJSignatureProofType: %v", err)
-	}
-	if !coreClaim.GetFlagUpdatable() {
-		return errors.New("updatable flag is not set")
-	}
 	return nil
 }
 
@@ -197,4 +195,23 @@ func isUpdatedIndexSlots(credentialBytes []byte,
 	}
 
 	return errIndexSlotsNotUpdated
+}
+
+func extractRevocationNonce(credential verifiable.W3CCredential) (uint64, error) {
+	credentialStatusInfo, ok := credential.CredentialStatus.(map[string]interface{})
+	if !ok {
+		return 0,
+			errors.New("invalid credential status")
+	}
+	nonce, ok := credentialStatusInfo["revocationNonce"]
+	if !ok {
+		return 0,
+			errors.New("revocationNonce not found in credential status")
+	}
+	n, ok := nonce.(float64)
+	if !ok {
+		return 0,
+			errors.New("revocationNonce is not a number")
+	}
+	return uint64(n), nil
 }
