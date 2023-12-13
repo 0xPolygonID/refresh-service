@@ -57,7 +57,7 @@ func (as *AgentService) Process(envelop []byte) (
 			Type:     iden3Protocol.CredentialIssuanceResponseMessageType,
 			ThreadID: message.ThreadID,
 			Body: iden3Protocol.IssuanceMessageBody{
-				Credential: refreshed,
+				Credential: *refreshed,
 			},
 			From: message.To,
 			To:   message.From,

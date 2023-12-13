@@ -81,7 +81,7 @@ func (fh *FlexibleHTTP) Provide(credentialSubject map[string]interface{}) (map[s
 	return decodedResponse, nil
 }
 
-func (fh FlexibleHTTP) BuildRequest(credentialSubject map[string]interface{}) (*http.Request, error) {
+func (fh *FlexibleHTTP) BuildRequest(credentialSubject map[string]interface{}) (*http.Request, error) {
 	u, err := url.Parse(fh.Provider.URL)
 	if err != nil {
 		return nil, err
@@ -115,7 +115,7 @@ func (fh FlexibleHTTP) BuildRequest(credentialSubject map[string]interface{}) (*
 	request, err := http.NewRequest(
 		fh.Provider.Method,
 		u.String(),
-		nil,
+		http.NoBody,
 	)
 	if err != nil {
 		return nil, err
@@ -127,7 +127,7 @@ func (fh FlexibleHTTP) BuildRequest(credentialSubject map[string]interface{}) (*
 	return request, nil
 }
 
-func (fh FlexibleHTTP) DecodeResponse(response map[string]interface{}) (map[string]interface{}, error) {
+func (fh *FlexibleHTTP) DecodeResponse(response map[string]interface{}) (map[string]interface{}, error) {
 	parsedFields := make(map[string]interface{})
 	for propertyKey, propertyValue := range fh.ResponseSchema.Properties {
 		parts := strings.Split(propertyKey, ".")
@@ -187,6 +187,7 @@ func isPlaceholder(v string) bool {
 	return strings.HasPrefix(v, "{{") && strings.HasSuffix(v, "}}")
 }
 
+// nolint:gocritic // clear with named return
 func processKey(key string) (string, int) {
 	startIdx := strings.Index(key, "[")
 	endIdx := strings.Index(key, "]")

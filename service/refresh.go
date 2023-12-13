@@ -47,55 +47,55 @@ type credentialRequest struct {
 
 func (rs *RefreshService) Process(issuer string,
 	owner string, id string) (
-	verifiable.W3CCredential, error) {
+	*verifiable.W3CCredential, error) {
 	credential, err := rs.issuerService.GetClaimByID(issuer, id)
 	if err != nil {
-		return verifiable.W3CCredential{}, err
+		return nil, err
 	}
 
 	err = isUpdatable(credential)
 	if err != nil {
-		return verifiable.W3CCredential{},
+		return nil,
 			errors.Wrapf(ErrCredentialNotUpdatable,
 				"credential '%s': %v", credential.ID, err)
 	}
 	err = checkOwnerShip(credential, owner)
 	if err != nil {
-		return verifiable.W3CCredential{},
+		return nil,
 			errors.Wrapf(ErrCredentialNotUpdatable, "credential '%s': %v", credential.ID, err)
 	}
 
 	credentialBytes, err := json.Marshal(credential)
 	if err != nil {
-		return verifiable.W3CCredential{}, err
+		return nil, err
 	}
 	credentialType, err := merklize.Options{
 		DocumentLoader: rs.documentLoader,
 	}.TypeIDFromContext(credentialBytes, credential.CredentialSubject["type"].(string))
 	if err != nil {
-		return verifiable.W3CCredential{}, err
+		return nil, err
 	}
 
 	flexibleHTTP, err := rs.providers.ProduceFlexibleHTTP(credentialType)
 	if err != nil {
-		return verifiable.W3CCredential{},
+		return nil,
 			errors.Wrapf(ErrCredentialNotUpdatable,
 				"for credential '%s' not possible to find a data provider: %v", credential.ID, err)
 
 	}
 	updatedFields, err := flexibleHTTP.Provide(credential.CredentialSubject)
 	if err != nil {
-		return verifiable.W3CCredential{}, err
+		return nil, err
 	}
 
 	uploadedContexts, err := rs.loadContexts(credential.Context)
 	if err != nil {
-		return verifiable.W3CCredential{}, err
+		return nil, err
 	}
 
 	if err := isUpdatedIndexSlots(uploadedContexts,
 		credential.CredentialSubject, updatedFields); err != nil {
-		return verifiable.W3CCredential{},
+		return nil,
 			errors.Wrapf(ErrCredentialNotUpdatable,
 				"for credential '%s' index slots parsing process error: %v", credential.ID, err)
 	}
@@ -106,7 +106,7 @@ func (rs *RefreshService) Process(issuer string,
 
 	revNonce, err := extractRevocationNonce(credential)
 	if err != nil {
-		return verifiable.W3CCredential{}, err
+		return nil, err
 	}
 
 	credentialRequest := credentialRequest{
@@ -120,11 +120,11 @@ func (rs *RefreshService) Process(issuer string,
 
 	refreshedID, err := rs.issuerService.CreateCredential(issuer, credentialRequest)
 	if err != nil {
-		return verifiable.W3CCredential{}, err
+		return nil, err
 	}
 	rc, err := rs.issuerService.GetClaimByID(issuer, refreshedID)
 	if err != nil {
-		return verifiable.W3CCredential{}, err
+		return nil, err
 	}
 
 	return rc, nil
@@ -157,7 +157,7 @@ func (rs *RefreshService) loadContexts(contexts []string) ([]byte, error) {
 	return json.Marshal(res)
 }
 
-func isUpdatable(credential verifiable.W3CCredential) error {
+func isUpdatable(credential *verifiable.W3CCredential) error {
 	if credential.Expiration.After(time.Now()) {
 		return errors.New("expired")
 	}
@@ -167,7 +167,7 @@ func isUpdatable(credential verifiable.W3CCredential) error {
 	return nil
 }
 
-func checkOwnerShip(credential verifiable.W3CCredential, owner string) error {
+func checkOwnerShip(credential *verifiable.W3CCredential, owner string) error {
 	if credential.CredentialSubject["id"] != owner {
 		return errors.New("not owner of the credential")
 	}
@@ -197,7 +197,7 @@ func isUpdatedIndexSlots(credentialBytes []byte,
 	return errIndexSlotsNotUpdated
 }
 
-func extractRevocationNonce(credential verifiable.W3CCredential) (uint64, error) {
+func extractRevocationNonce(credential *verifiable.W3CCredential) (uint64, error) {
 	credentialStatusInfo, ok := credential.CredentialStatus.(map[string]interface{})
 	if !ok {
 		return 0,

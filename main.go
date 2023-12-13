@@ -1,10 +1,9 @@
 package main
 
 import (
+	_ "embed"
 	"log"
 	"strings"
-
-	_ "embed"
 
 	_ "github.com/0xPolygonID/refresh-service/logger"
 	"github.com/0xPolygonID/refresh-service/packagemanager"
@@ -84,7 +83,7 @@ func main() {
 	documentLoader := loaders.NewDocumentLoader(ipfsCli, "",
 		loaders.WithCacheEngine(memoryCacheEngine))
 
-	flexiblehttp, err := flexiblehttp.NewFactoryFlexibleHTTP(
+	flexhttp, err := flexiblehttp.NewFactoryFlexibleHTTP(
 		cfg.HTTPConfigPath,
 		nil,
 	)
@@ -95,7 +94,7 @@ func main() {
 	refreshService := service.NewRefreshService(
 		issuerService,
 		documentLoader,
-		flexiblehttp,
+		flexhttp,
 	)
 
 	agentService := service.NewAgentService(
