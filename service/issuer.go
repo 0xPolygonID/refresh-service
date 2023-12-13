@@ -33,11 +33,10 @@ func NewIssuerService(supportedIssuers map[string]string, client *http.Client) *
 	}
 }
 
-func (is *IssuerService) GetClaimByID(issuerDID, claimID string) (
-	credential verifiable.W3CCredential, error error) {
+func (is *IssuerService) GetClaimByID(issuerDID, claimID string) (*verifiable.W3CCredential, error) {
 	issuerNode, err := is.getIssuerURL(issuerDID)
 	if err != nil {
-		return credential, err
+		return nil, err
 	}
 	logger.DefaultLogger.Infof("use issuer node '%s' for issuer '%s'", issuerNode, issuerDID)
 
@@ -45,15 +44,16 @@ func (is *IssuerService) GetClaimByID(issuerDID, claimID string) (
 		fmt.Sprintf("%s/api/v1/identities/%s/claims/%s", issuerNode, issuerDID, claimID),
 	)
 	if err != nil {
-		return credential, errors.Wrapf(ErrGetClaim,
+		return nil, errors.Wrapf(ErrGetClaim,
 			"failed http GET request: '%v'", err)
 	}
 	defer resp.Body.Close()
 	if resp.StatusCode != http.StatusOK {
-		return credential, errors.Wrapf(ErrGetClaim,
+		return nil, errors.Wrapf(ErrGetClaim,
 			"invalid status code: '%d'", resp.StatusCode)
 	}
-	err = json.NewDecoder(resp.Body).Decode(&credential)
+	credential := &verifiable.W3CCredential{}
+	err = json.NewDecoder(resp.Body).Decode(credential)
 	if err != nil {
 		return credential, errors.Wrapf(ErrGetClaim,
 			"failed to decode response: '%v'", err)

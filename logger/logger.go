@@ -7,6 +7,7 @@ import (
 
 var DefaultLogger *zap.SugaredLogger
 
+// nolint:gochecknoinits // this is the simplest way to initialize the logger
 func init() {
 	logger, err := zap.NewDevelopment()
 	if err != nil {

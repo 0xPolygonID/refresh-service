@@ -21,7 +21,6 @@ func zapContextLogger(next http.Handler) http.Handler {
 				"remoteAddr", r.RemoteAddr,
 				"responseTime", fmt.Sprintf("%d ms", time.Since(t1).Milliseconds()),
 				"status", ww.Status())
-			_ = logger.DefaultLogger.Sync()
 		}()
 
 		next.ServeHTTP(ww, r)

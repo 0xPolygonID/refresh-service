@@ -37,7 +37,7 @@ type state struct {
 	contracts map[int]*abi.State
 }
 
-func (s *state) verify(circuitID circuits.CircuitID, pubsignals []string) error {
+func (s *state) verify(_ circuits.CircuitID, pubsignals []string) error {
 	bytePubsig, err := json.Marshal(pubsignals)
 	if err != nil {
 		return err
@@ -100,17 +100,20 @@ func NewPackageManager(
 	circuitsFolderPath string,
 ) (*iden3comm.PackageManager, error) {
 	circuitsPath := fmt.Sprintf("%s/%s", circuitsFolderPath, "authV2")
-	_, err := os.ReadFile(fmt.Sprintf("%s/circuit_final.zkey", circuitsPath))
+	_, err := os.Stat(fmt.Sprintf("%s/circuit_final.zkey", circuitsPath))
 	if err != nil {
-		return nil, err
+		return nil, errors.Errorf(
+			"issuer with the file circuit_final.zkey by path '%s': %v", circuitsPath, err)
 	}
-	_, err = os.ReadFile(fmt.Sprintf("%s/circuit.wasm", circuitsPath))
+	_, err = os.Stat(fmt.Sprintf("%s/circuit.wasm", circuitsPath))
 	if err != nil {
-		return nil, err
+		return nil, errors.Errorf(
+			"issuer with the file circuit.wasm by path '%s': %v", circuitsPath, err)
 	}
 	verificationKey, err := os.ReadFile(fmt.Sprintf("%s/verification_key.json", circuitsPath))
 	if err != nil {
-		return nil, err
+		return nil, errors.Errorf(
+			"issuer with the file verification_key.json by path '%s': %v", circuitsPath, err)
 	}
 
 	states := state{
