@@ -7,8 +7,8 @@ import (
 
 	"github.com/0xPolygonID/refresh-service/logger"
 	"github.com/0xPolygonID/refresh-service/service"
-	"github.com/go-chi/chi/middleware"
 	"github.com/go-chi/chi/v5"
+	"github.com/go-chi/chi/v5/middleware"
 	"github.com/pkg/errors"
 	"github.com/rs/cors"
 )
