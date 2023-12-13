@@ -72,7 +72,11 @@ func (is *IssuerService) CreateCredential(issuerDID string, credentialRequest cr
 	logger.DefaultLogger.Infof("use issuer node '%s' for issuer '%s'", issuerNode, issuerDID)
 
 	body := bytes.NewBuffer([]byte{})
-	json.NewEncoder(body).Encode(credentialRequest)
+	err = json.NewEncoder(body).Encode(credentialRequest)
+	if err != nil {
+		return id, errors.Wrapf(ErrCreateClaim,
+			"credential request serialization error")
+	}
 	resp, err := http.DefaultClient.Post(
 		fmt.Sprintf("%s/api/v1/identities/%s/claims", issuerNode, issuerDID),
 		"application/json",

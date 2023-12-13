@@ -80,7 +80,7 @@ func (rs *RefreshService) Process(issuer string,
 	if err != nil {
 		return verifiable.W3CCredential{},
 			errors.Wrapf(ErrCredentialNotUpdatable,
-				"for credential '%s' not possible to find a data provider", credential.ID, err)
+				"for credential '%s' not possible to find a data provider: %v", credential.ID, err)
 
 	}
 	updatedFields, err := flexibleHTTP.Provide(credential.CredentialSubject)
