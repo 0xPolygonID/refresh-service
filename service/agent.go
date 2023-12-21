@@ -2,6 +2,7 @@ package service
 
 import (
 	"encoding/json"
+	"strings"
 
 	"github.com/google/uuid"
 	"github.com/iden3/iden3comm/v2"
@@ -46,8 +47,11 @@ func (as *AgentService) Process(envelop []byte) (
 			return nil, errors.Wrapf(ErrInvalidProtocolMessage, "failed to unmarshal body: %v", err)
 		}
 
-		refreshed, err := as.refreshService.Process(message.To,
-			message.From, bodyMessage.ID)
+		refreshed, err := as.refreshService.Process(
+			message.To,
+			message.From,
+			convertID(bodyMessage.ID),
+		)
 		if err != nil {
 			return nil, err
 		}
@@ -86,4 +90,19 @@ func verifyMessageAttributes(message *iden3comm.BasicMessage) error {
 		return errors.New("missing 'to' field in message")
 	}
 	return nil
+}
+
+/*
+TODO(illia-korotia): temporary solution,
+need to communicate with the mobile team to pass the correct ID
+*/
+func convertID(id string) string {
+	if strings.HasPrefix(id, "urn:uuid:") {
+		return strings.TrimPrefix(id, "urn:uuid:")
+	}
+	parts := strings.Split(id, "/")
+	if len(parts) > 0 {
+		return parts[len(parts)-1]
+	}
+	return id
 }
