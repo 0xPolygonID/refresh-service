@@ -50,13 +50,13 @@ func (is *IssuerService) GetClaimByID(issuerDID, claimID string) (*verifiable.W3
 	getRequest, err := http.NewRequest(
 		http.MethodGet,
 		fmt.Sprintf("%s/v1/%s/claims/%s", issuerNode, issuerDID, claimID),
-		nil,
+		http.NoBody,
 	)
 	if err != nil {
 		return nil, errors.Wrapf(ErrGetClaim,
 			"failed to create http request: '%v'", err)
 	}
-	if err = is.setBasicAuth(issuerDID, getRequest); err != nil {
+	if err := is.setBasicAuth(issuerDID, getRequest); err != nil {
 		return nil, err
 	}
 
@@ -105,7 +105,7 @@ func (is *IssuerService) CreateCredential(issuerDID string, credentialRequest cr
 		return id, errors.Wrapf(ErrCreateClaim,
 			"failed to create http request: '%v'", err)
 	}
-	if err = is.setBasicAuth(issuerDID, postRequest); err != nil {
+	if err := is.setBasicAuth(issuerDID, postRequest); err != nil {
 		return id, err
 	}
 
