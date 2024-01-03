@@ -45,13 +45,14 @@ func (c *KVstring) Decode(value string) error {
 }
 
 type Config struct {
-	SupportedIssuers        KVstring `envconfig:"SUPPORTED_ISSUERS" required:"true"`
-	IPFSURL                 string   `envconfig:"IPFS_URL" required:"true"`
-	ServerHost              string   `envconfig:"SERVER_HOST" default:"localhost:8002"`
-	HTTPConfigPath          string   `envconfig:"HTTP_CONFIG_PATH" default:"config.yaml"`
-	SupportedRPC            KVstring `envconfig:"SUPPORTED_RPC" required:"true"`
-	SupportedStateContracts KVstring `envconfig:"SUPPORTED_STATE_CONTRACTS" required:"true"`
-	CircuitsFolderPath      string   `envconfig:"CIRCUITS_FOLDER_PATH" default:"circuits"`
+	SupportedIssuers          KVstring `envconfig:"SUPPORTED_ISSUERS" required:"true"`
+	IPFSURL                   string   `envconfig:"IPFS_URL" required:"true"`
+	ServerHost                string   `envconfig:"SERVER_HOST" default:"localhost:8002"`
+	HTTPConfigPath            string   `envconfig:"HTTP_CONFIG_PATH" default:"config.yaml"`
+	SupportedRPC              KVstring `envconfig:"SUPPORTED_RPC" required:"true"`
+	SupportedStateContracts   KVstring `envconfig:"SUPPORTED_STATE_CONTRACTS" required:"true"`
+	CircuitsFolderPath        string   `envconfig:"CIRCUITS_FOLDER_PATH" default:"circuits"`
+	SupportedIssuersBasicAuth KVstring `envconfig:"ISSUERS_BASIC_AUTH"`
 }
 
 func main() {
@@ -71,6 +72,7 @@ func main() {
 
 	issuerService := service.NewIssuerService(
 		cfg.SupportedIssuers,
+		cfg.SupportedIssuersBasicAuth,
 		nil,
 	)
 
