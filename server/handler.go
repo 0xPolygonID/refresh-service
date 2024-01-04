@@ -49,7 +49,7 @@ func (h *Handlers) Run(host string) error {
 			return
 		}
 
-		response, err := h.agentService.Process(envelope)
+		response, err := h.agentService.Process(r.Context(), envelope)
 		if err != nil {
 			handleError(w, err)
 			return
