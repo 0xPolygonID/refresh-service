@@ -188,8 +188,10 @@ func (rs *RefreshService) isUpdatedIndexSlots(
 	}
 
 	switch merklizedRootPosition {
-	case core.MerklizedRootPositionIndex, core.MerklizedRootPositionValue:
+	case core.MerklizedRootPositionIndex:
 		return nil
+	case core.MerklizedRootPositionValue:
+		return errIndexSlotsNotUpdated
 	case core.MerklizedRootPositionNone:
 		credentialBytes, err := rs.loadContexts(credential.Context)
 		if err != nil {
