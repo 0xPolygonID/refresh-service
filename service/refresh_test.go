@@ -1,12 +1,21 @@
 package service
 
 import (
+	"context"
+	"encoding/json"
+	"net/http"
 	"testing"
 
+	"github.com/iden3/go-schema-processor/v2/verifiable"
+	"github.com/piprate/json-gold/ld"
 	"github.com/stretchr/testify/require"
 )
 
-var nonMerklizedCredential = []byte(`{
+var (
+	defaultDocumentLoader = ld.NewDefaultDocumentLoader(
+		http.DefaultClient,
+	)
+	nonMerklizedCredential = []byte(`{
     "id": "https://dd25-62-87-103-47.ngrok-free.app/api/v1/identities/did:polygonid:polygon:mumbai:2qMPnHfStSRPTEEuoYKApnh8j8ppVYUAJDNRJwXUzf/claims/e6d0e822-686c-11ee-8afb-3ec1cb517438",
     "@context": [
         "https://www.w3.org/2018/credentials/v1",
@@ -60,6 +69,7 @@ var nonMerklizedCredential = []byte(`{
         }
     ]
 }`)
+)
 
 func TestIsUpdatedIndexSlot(t *testing.T) {
 	tests := []struct {
@@ -83,8 +93,17 @@ func TestIsUpdatedIndexSlot(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			err := isUpdatedIndexSlots(nonMerklizedCredential,
-				tt.oldValues, tt.newValues)
+			var credential verifiable.W3CCredential
+			err := json.Unmarshal(nonMerklizedCredential, &credential)
+			require.NoError(t, err)
+			err = (&RefreshService{
+				documentLoader: defaultDocumentLoader,
+			}).isUpdatedIndexSlots(
+				context.Background(),
+				&credential,
+				tt.oldValues,
+				tt.newValues,
+			)
 			require.NoError(t, err)
 		})
 	}
@@ -112,8 +131,17 @@ func TestIsUpdatedIndexSlot_Error(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			err := isUpdatedIndexSlots(nonMerklizedCredential,
-				tt.oldValues, tt.newValues)
+			var credential verifiable.W3CCredential
+			err := json.Unmarshal(nonMerklizedCredential, &credential)
+			require.NoError(t, err)
+			err = (&RefreshService{
+				documentLoader: defaultDocumentLoader,
+			}).isUpdatedIndexSlots(
+				context.Background(),
+				&credential,
+				tt.oldValues,
+				tt.newValues,
+			)
 			require.ErrorIs(t, err, errIndexSlotsNotUpdated)
 		})
 	}

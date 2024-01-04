@@ -1,6 +1,7 @@
 package service
 
 import (
+	"context"
 	"encoding/json"
 	"strings"
 
@@ -29,7 +30,7 @@ func NewAgentService(refreshService *RefreshService,
 	}
 }
 
-func (as *AgentService) Process(envelop []byte) (
+func (as *AgentService) Process(ctx context.Context, envelop []byte) (
 	[]byte, error) {
 	message, _, err := as.packageManager.Unpack(envelop)
 	if err != nil {
@@ -48,6 +49,7 @@ func (as *AgentService) Process(envelop []byte) (
 		}
 
 		refreshed, err := as.refreshService.Process(
+			ctx,
 			message.To,
 			message.From,
 			convertID(bodyMessage.ID),
