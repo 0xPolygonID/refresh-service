@@ -1,11 +1,13 @@
 package service
 
 import (
+	"context"
 	"encoding/json"
 	"strings"
 	"time"
 
 	"github.com/0xPolygonID/refresh-service/providers/flexiblehttp"
+	core "github.com/iden3/go-iden3-core/v2"
 	jsonproc "github.com/iden3/go-schema-processor/v2/json"
 	"github.com/iden3/go-schema-processor/v2/merklize"
 	"github.com/iden3/go-schema-processor/v2/verifiable"
@@ -45,8 +47,9 @@ type credentialRequest struct {
 	RevNonce          *uint64                    `json:"revNonce,omitempty"`
 }
 
-func (rs *RefreshService) Process(issuer string,
-	owner string, id string) (
+func (rs *RefreshService) Process(
+	ctx context.Context,
+	issuer, owner, id string) (
 	*verifiable.W3CCredential, error) {
 	credential, err := rs.issuerService.GetClaimByID(issuer, id)
 	if err != nil {
@@ -88,12 +91,7 @@ func (rs *RefreshService) Process(issuer string,
 		return nil, err
 	}
 
-	uploadedContexts, err := rs.loadContexts(credential.Context)
-	if err != nil {
-		return nil, err
-	}
-
-	if err := isUpdatedIndexSlots(uploadedContexts,
+	if err := rs.isUpdatedIndexSlots(ctx, credential,
 		credential.CredentialSubject, updatedFields); err != nil {
 		return nil,
 			errors.Wrapf(ErrCredentialNotUpdatable,
@@ -159,10 +157,10 @@ func (rs *RefreshService) loadContexts(contexts []string) ([]byte, error) {
 
 func isUpdatable(credential *verifiable.W3CCredential) error {
 	if credential.Expiration.After(time.Now()) {
-		return errors.New("expired")
+		return errors.New("not expired")
 	}
 	if credential.CredentialSubject["id"] == "" {
-		return errors.New("subject does not have an id")
+		return errors.New("credential subject does not have an id")
 	}
 	return nil
 }
@@ -174,26 +172,48 @@ func checkOwnerShip(credential *verifiable.W3CCredential, owner string) error {
 	return nil
 }
 
-func isUpdatedIndexSlots(credentialBytes []byte,
-	oldValues, newValues map[string]interface{}) error {
-
-	for k, v := range oldValues {
-		if k == "type" || k == "id" {
-			continue
-		}
-		slotIndex, err := jsonproc.Parser{}.GetFieldSlotIndex(
-			k, oldValues["type"].(string), credentialBytes)
-		if err != nil && strings.Contains(err.Error(), "not specified in serialization info") {
-			// invalid schema or merklized credential
-			return nil
-		} else if err != nil {
-			return err
-		}
-		if (slotIndex == 2 || slotIndex == 3) && v != newValues[k] {
-			return nil
-		}
+func (rs *RefreshService) isUpdatedIndexSlots(
+	ctx context.Context,
+	credential *verifiable.W3CCredential,
+	oldValues, newValues map[string]interface{},
+) error {
+	claim, err := jsonproc.Parser{}.ParseClaim(ctx, *credential, nil)
+	if err != nil {
+		return errors.Errorf("invalid w3c credential: %v", err)
 	}
 
+	merklizedRootPosition, err := claim.GetMerklizedPosition()
+	if err != nil {
+		return errors.Errorf("failed to get merklized position: %v", err)
+	}
+
+	switch merklizedRootPosition {
+	case core.MerklizedRootPositionIndex:
+		return nil
+	case core.MerklizedRootPositionValue:
+		return errIndexSlotsNotUpdated
+	case core.MerklizedRootPositionNone:
+		credentialBytes, err := rs.loadContexts(credential.Context)
+		if err != nil {
+			return errors.Errorf("failed to load contexts: %v", err)
+		}
+		for k, v := range oldValues {
+			if k == "type" || k == "id" {
+				continue
+			}
+			slotIndex, err := jsonproc.Parser{}.GetFieldSlotIndex(
+				k, oldValues["type"].(string), credentialBytes)
+			if err != nil && strings.Contains(err.Error(), "not specified in serialization info") {
+				// invalid schema or merklized credential
+				return nil
+			} else if err != nil {
+				return err
+			}
+			if (slotIndex == 2 || slotIndex == 3) && v != newValues[k] {
+				return nil
+			}
+		}
+	}
 	return errIndexSlotsNotUpdated
 }
 
