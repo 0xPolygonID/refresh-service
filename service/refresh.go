@@ -6,10 +6,10 @@ import (
 	"strings"
 	"time"
 
+	"github.com/0xPolygonID/refresh-service/providers/example"
 	"github.com/0xPolygonID/refresh-service/providers/flexiblehttp"
 	core "github.com/iden3/go-iden3-core/v2"
 	jsonproc "github.com/iden3/go-schema-processor/v2/json"
-	"github.com/iden3/go-schema-processor/v2/merklize"
 	"github.com/iden3/go-schema-processor/v2/verifiable"
 	"github.com/piprate/json-gold/ld"
 	"github.com/pkg/errors"
@@ -68,27 +68,13 @@ func (rs *RefreshService) Process(
 			errors.Wrapf(ErrCredentialNotUpdatable, "credential '%s': %v", credential.ID, err)
 	}
 
-	credentialBytes, err := json.Marshal(credential)
-	if err != nil {
-		return nil, err
+	address, ok := credential.CredentialSubject["address"]
+	if !ok {
+		return nil, errors.New("address not found in credential subject")
 	}
-	credentialType, err := merklize.Options{
-		DocumentLoader: rs.documentLoader,
-	}.TypeIDFromContext(credentialBytes, credential.CredentialSubject["type"].(string))
+	updatedFields, err := example.GetBalanceByAddress(address.(string))
 	if err != nil {
-		return nil, err
-	}
-
-	flexibleHTTP, err := rs.providers.ProduceFlexibleHTTP(credentialType)
-	if err != nil {
-		return nil,
-			errors.Wrapf(ErrCredentialNotUpdatable,
-				"for credential '%s' not possible to find a data provider: %v", credential.ID, err)
-
-	}
-	updatedFields, err := flexibleHTTP.Provide(credential.CredentialSubject)
-	if err != nil {
-		return nil, err
+		return nil, errors.Errorf("failed to get balance by address from data provider: %v", err)
 	}
 
 	if err := rs.isUpdatedIndexSlots(ctx, credential,
@@ -111,7 +97,7 @@ func (rs *RefreshService) Process(
 		CredentialSchema:  credential.CredentialSchema.ID,
 		Type:              credential.CredentialSubject["type"].(string),
 		CredentialSubject: credential.CredentialSubject,
-		Expiration:        time.Now().Add(flexibleHTTP.Settings.TimeExpiration).Unix(),
+		Expiration:        time.Now().Add(15 * time.Minute).Unix(),
 		RefreshService:    credential.RefreshService,
 		RevNonce:          &revNonce,
 	}
