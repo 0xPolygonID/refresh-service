@@ -100,16 +100,6 @@ func NewPackageManager(
 	circuitsFolderPath string,
 ) (*iden3comm.PackageManager, error) {
 	circuitsPath := fmt.Sprintf("%s/%s", circuitsFolderPath, "authV2")
-	_, err := os.Stat(fmt.Sprintf("%s/circuit_final.zkey", circuitsPath))
-	if err != nil {
-		return nil, errors.Errorf(
-			"issuer with the file circuit_final.zkey by path '%s': %v", circuitsPath, err)
-	}
-	_, err = os.Stat(fmt.Sprintf("%s/circuit.wasm", circuitsPath))
-	if err != nil {
-		return nil, errors.Errorf(
-			"issuer with the file circuit.wasm by path '%s': %v", circuitsPath, err)
-	}
 	verificationKey, err := os.ReadFile(fmt.Sprintf("%s/verification_key.json", circuitsPath))
 	if err != nil {
 		return nil, errors.Errorf(
