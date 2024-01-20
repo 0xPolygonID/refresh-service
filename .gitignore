@@ -9,3 +9,6 @@ refresh-service
 
 # circuits
 circuits
+
+# for mac
+.DS_Store
