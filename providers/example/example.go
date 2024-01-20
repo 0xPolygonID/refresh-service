@@ -13,6 +13,7 @@ func requestToHttpbin(address string) (io.ReadCloser, error) {
 	url := "http://httpbin.org/post"
 	payload := map[string]interface{}{
 		"ownerAddress": address,
+		//nolint:gosec // this is just example
 		"ownerBalance": rand.Intn(1000000),
 	}
 	bytesPayload, err := json.Marshal(payload)
