@@ -4,12 +4,14 @@
 
 Here are three potential scenarios for customizing the refresh service:
 
-1. Utilize the [flexible HTTP package](https://github.com/0xPolygonID/refresh-service/blob/main/providers/flexiblehttp/http.go) to configure HTTP requests to a data provider. Refer to the [configuration guide](https://github.com/0xPolygonID/refresh-service/blob/main/README.md) for instructions on how to set this up.
-2. Extend customization by incorporating custom providers and integrating them into the refresh flow. Adjust [the default provider](https://github.com/0xPolygonID/refresh-service/blob/main/service/refresh.go#L82-L92) to use the desired custom data provider.
+1. Extend customization by incorporating custom providers and integrating them into the refresh flow.
+2. Utilize the [flexible HTTP package](https://github.com/0xPolygonID/refresh-service/blob/main/providers/flexiblehttp/http.go) to configure HTTP requests to a data provider. Refer to the [configuration guide](https://github.com/0xPolygonID/refresh-service/blob/main/README.md) for instructions on how to set this up.
 3. For ultimate customization, consider implementing the refresh service from scratch to tailor it precisely to your specific needs.
 
 **Custom provider example:**
 
+This is the easiest way to add custom business logic to retrieve data from a data provider.</br>
+[An example implementation of a custom provider](https://github.com/0xPolygonID/refresh-service/pull/5).
 > **NOTE: This example demonstrates the creation a custom data provider for the refresh service. You can repeat this example only if you use this [issuer-node](https://github.com/0xPolygonID/issuer-node/).**
 > 
 
@@ -41,15 +43,22 @@ Here are three potential scenarios for customizing the refresh service:
     [Example of JSON schema](https://gist.github.com/ilya-korotya/ac6301168991e798a8f316944a3f2f58)
     
     [Example of JSONLD schema](https://gist.github.com/ilya-korotya/1549ee89a053bc42a98e53392dafc6f6)
-4. Add the custom data provider to the [providers](https://github.com/0xPolygonID/refresh-service/tree/main/providers) package. The data provider should call an external service to fetch data and return the data in `map[string]any` format. The keys of the object should match the credential subject of the credential. An example implementation of a custom provider can be found [here](https://github.com/0xPolygonID/refresh-service/pull/5).
+4. Add the custom data provider to the [providers](https://github.com/0xPolygonID/refresh-service/tree/main/providers) package. The data provider should call an external service to fetch data and return the data in `map[string]any` format. The keys of the object should match the credential subject of the credential.
 5. Navigate to the UI of your hosted issuer-node and issue a credential with the refresh service.
     
-    ![Screenshot 2024-01-20 at 01.52.28.png](assets/create-credential-with-refresh-service.png)
+    ![pass refresh service for a credential](assets/create-credential-with-refresh-service.png)
     
-6. After the expiration of this credential, it is possible to refresh the credential in the verification step under the hood. Visit [verifier-demo.polygonid.me](https://verifier-demo.polygonid.me/) and create a custom request with your schema, etc. During the verification process, the expired credential will be refreshed and used to generate a proof.
+6. Set a short expiration date (5 minutes for example).
+
+    ![set short expiration date](assets/set-expiration.png)
+
+7. After the expiration of this credential, it is possible to refresh the credential in the verification step. Visit [verifier-demo.polygonid.me](https://verifier-demo.polygonid.me/) and create a custom request with your schema, etc. During the verification process, the expired credential will be refreshed and used to generate a proof.
+
+    ![create a proof request](assets/proof-request.png)
 
 **Refresh service from scratch:**
 
+Implementing a refresh service from scratch can be useful when you have your own isuer node implementation or have special data processing logic, etc.</br>
 In its simplest form, the refresh service is designed with four integral components:
 
 1. **[HTTP Server](https://github.com/0xPolygonID/refresh-service/tree/main/server)**: This server plays a pivotal role by supporting the iden3comm protocol. Specifically, it is equipped to process the [refresh iden3comm message](https://iden3-communication.io/credentials/1.0/refresh/), ensuring seamless communication within the ecosystem.
@@ -65,14 +74,14 @@ In summary, the refresh service is a comprehensive system, encompassing an HTTP 
 
 **Authentication module for setup iden3comm handler** 
 
-To ascertain whether a user is the rightful owner of the credentials they intend to refresh, it is essential to implement an authentication module. To initiate the process, you should initialize the [Iden3comm package manager](https://github.com/0xPolygonID/refresh-service/blob/main/packagemanager/packagemanager.go).
+To be sure whether a user is the owner of the credentials they want to refresh, it is essential to implement an authentication module. To initiate the process, you should initialize the [Iden3comm package manager](https://github.com/0xPolygonID/refresh-service/blob/main/packagemanager/packagemanager.go).
 
 In the context of a refresh service where JWZ tokens are verified, you will require the verification_key.json for the authV2 circuit. Additionally, to confirm the existence of the user in the issuer's state, one needs to know the issuer's state contract:
 
-State contract for **Polygon** **Mumbai**: `0x134B1BE34911E39A8397ec6289782989729807a4`
-State contract for **Polygon** **Mainnet**: `0x624ce98D2d27b20b8f8d521723Df8fC4db71D79D`
+- State contract for **Polygon** **Mumbai**: `0x134B1BE34911E39A8397ec6289782989729807a4`
+- State contract for **Polygon** **Mainnet**: `0x624ce98D2d27b20b8f8d521723Df8fC4db71D79D`
 
-To authorise the user’s JWZ token, it is necessary to define a function that verifies proof and the issuer’s state. Once the authorization is complete, the refresh service will be aware of the user’s DID from the JWZ token. This enables a comparison to ensure that the credential being refreshed contains the same DID in the credential subject.
+To authorise the user’s JWZ token, it is necessary to define a function that verifies proof and the issuer’s state. Once the authorization is complete, the refresh service will be aware of the user’s DID from the JWZ token. Now you can ensure that the credential being refreshed contains the same DID in the credential subject.
 
 > **NOTE:** It is crucial to verify whether a user is the owner of the credential that potentially will be refreshed. Without this verification, an attacker could refresh and obtain a third-party credential.
 > 
