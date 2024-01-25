@@ -36,26 +36,7 @@ The data model of `refershService`:
 Supported types:
 - Iden3RefreshService2023
 
-## Support on the Issuer side
-
-1. **Optional support for embedded structure**: Issuer servers may optionally support a new embedded structure `refreshService` within the credential request:
-    ```json
-    "refreshService": { 
-       "id": "http://refreshservice.example:8002", 
-       "type": "Iden3RefreshService2023"
-    }
-    ```
-    
-2. **Validation of refresh service**: validate if type `refreshService.type` is supported . If `refreshService` was provied, check if the credential has `expirationDate`.
-3. **Endpoints for Iden3RefreshService2023**: To support the `Iden3RefreshService2023` refresh service type, an issuer-node should provide public endpoints. These endpoints may be secured using methods like API keys or basic authentication. The specific endpoints include:
-    - `GET /api/v1/identities/{issuer_did}/claims/{claim_id}`: To retrieve a claim by its issuerDID and claim ID.
-    - `POST /api/v1/identities/{issuer_did}/claims`: To issue a credential under an issuer.
-    
-    > **NOTE:** These URL are customizable for different implementations of the refresh service.
-    > 
-4. **Return of refreshService structure**: If a `refreshService` is added for a verifiable credential, the issuer should include the `refreshService` structure in the returned verifiable credential. This ensures the VC carries information about its refresh capabilities.
-
-## Algorithm of client  interaction with refresh service
+## Algorithm of client interaction with refresh service
 
 To implement credential refreshing, we need to follow the following algorithm to look up the credentials when a proof request is received:
 

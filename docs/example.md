@@ -86,7 +86,7 @@ To authorise the user’s JWZ token, it is necessary to define a function that v
 > **NOTE:** It is crucial to verify whether a user is the owner of the credential that potentially will be refreshed. Without this verification, an attacker could refresh and obtain a third-party credential.
 > 
 
-**********************************************************Integration with issuer node**********************************************************
+**Integration with issuer node**
 
 The refresh service acts as a 'proxy' between the data provider and the issuer node, facilitating communication between them. The refresh service must possess the capability to communicate with the issuer node through open endpoints. These endpoints should be secured using various methods, such as JWT tokens, Basic Auth, etc. On the issuer-node side, only two open endpoints should be accessible:
 
