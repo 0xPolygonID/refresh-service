@@ -2,11 +2,11 @@
 
 ## Description
 
-Credentials can expire. In some cases, having mechanisms to refresh these credentials can be helpful. Using a refresh service allows us to get new credentials for the short term. This approach ensures that users are consistently using the most current information about themselves, such as their user balance, game score or other very dynamic data.
+Credentials can expire. In some cases, having mechanisms to refresh issued credentials can be helpful. A refresh service allows issuing a short term credentials that will be updated. This approach ensures that users are consistently using the most current information provided by the issuer, such as for example: an user balance, an user game score or other data that is dynamic by its nature.
 
 ## Example of short-term credentials
 
-Consider an example of balance credentials, where a user proves balance to get some benefits. The balance can be changed a lot of times over a short period. If an issuer issues a balance credential with a long-term expiration, the claim holder could potentially engage in double spending activities. To minimize this risk, one solution is to use short-term credentials. However, this would require the user to frequently request a new credential from the issuer (e.g., every 5 minutes), which can be quite inconvenient. This is where the refresh service comes in handy. The refresh service handles all the necessary updates instead of the user.
+Consider an example of balance credentials, where a user proves his balance to get some benefits. The balance can be changed a lot of times over a short period. If an issuer issues a balance credential with a long-term expiration, the credential holder could potentially benefit of using credential with outdated information in it. To minimize this risk, one solution is to use short-term credentials. However, this would require a user frequently requests a new credential from an issuer (e.g., every 5 minutes), which is quite inefficient. This is where the refresh service comes in handy. The refresh service handles all the necessary updates instead of the user.
 
 ## Changes in the verifiable credential
 
@@ -38,7 +38,7 @@ Supported types:
 
 ## Algorithm of client interaction with refresh service
 
-To implement credential refreshing, we need to follow the following algorithm to look up the credentials when a proof request is received:
+To implement credential refreshing, we need to follow next algorithm to look up for the credentials when a proof request is received:
 
 ![auto-refresh.drawio.svg](assets/auto-refresh.drawio.svg)
 
@@ -48,7 +48,7 @@ To implement credential refreshing, we need to follow the following algorithm to
 
 **Credentials are found, check the skipRevocation flag.**
 
-- Check the value of the `skipRevocation` flag from the proof request. **true**, you should skips the revocation check and moves on to the next step. If **false**, process the revocation check.
+- Check the value of the `skipRevocation` flag from the proof request. **true**, you should skip the revocation check and move to the next step. If **false**, process the revocation check.
 
 **Check revocation for selected credentials.**
 
@@ -56,7 +56,7 @@ To implement credential refreshing, we need to follow the following algorithm to
 
 **Select all credentials that are non-expired and matched to the proof request.**
 
-- This step involves filtering out credentials that are expired and(or) don't match the proof request. If non-expired and matched to proof request credentials were found. Try to generate proof.
+- This step involves filtering out credentials that are expired and(or) don't match the proof request. If non-expired and matched to proof request credentials were found. Try to generate a proof.
 
 **Valid credentials are not found, filter all credentials that have a refresh service.**
 
@@ -80,7 +80,7 @@ If the refreshServer section within a verifiable credential is of type **Iden3Re
 
 ## Proposal
 
-Schema of workflow:
+Workflow algorithm:
 
 ![General flow.svg](assets/work-flow.svg)
 
@@ -104,7 +104,7 @@ Schema of workflow:
     
     **Merkle tree proof (MTP):**
 
-    > **NOTE:** The workflow for MTP is in development. However, you still receive notifications about MTP proof on the mobile application after refreshing credentials that have MTP proof.
+    > **NOTE:** The workflow for MTP is in development. However, you still can receive notifications about MTP proof on the mobile application after refreshing credential(-s) that have MTP proof are performed.
     >
 
     1. The `refreshService` informs the holder about the `pending` status.

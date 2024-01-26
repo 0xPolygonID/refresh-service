@@ -12,14 +12,14 @@ Here are three potential scenarios for customizing the refresh service:
 
 This is the easiest way to add custom business logic to retrieve data from a data provider.</br>
 [An example implementation of a custom provider](https://github.com/0xPolygonID/refresh-service/pull/5).
-> **NOTE: This example demonstrates the creation a custom data provider for the refresh service. You can repeat this example only if you use this [issuer-node](https://github.com/0xPolygonID/issuer-node/).**
+> **NOTE: This example demonstrates creation of a custom data provider for the refresh service. You can follow this example only if you use [issuer-node](https://github.com/0xPolygonID/issuer-node/).**
 > 
 
 **Preparation:**
 
 1. **Run issuer-node locally:** Follow the [quick-start installation guide](https://github.com/0xPolygonID/issuer-node/#quick-start-installation).
 2. **Build a schema via [schema builder](https://schema-builder.polygonid.me/builder):**
-    1. For this example, build a `Balance` schema.
+    1. For this example, we want to build a `Balance` schema.
     2. Create a JSON schema:
         
         ![BuildBalanceJSONSchema.png](assets/build-balance-JSON-schema.png)
@@ -28,7 +28,7 @@ This is the easiest way to add custom business logic to retrieve data from a dat
         
         ![Screenshot 2024-01-19 at 15.02.05.png](assets/build-balance-JSON-LD-schema.png)
         
-        > **NOTE:** The schema builder doesn't support the positiveInteger type, but the protocol does. Manually change this after schema creation:
+        > **NOTE:** As of now the schema builder doesn't support the positiveInteger type yet (WIP), but the protocol does. Manually change this after schema creation:
         > 
         
         ```json
