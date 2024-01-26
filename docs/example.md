@@ -1,14 +1,15 @@
 # Refresh service customization
 
-## How to build refresh service
+Here are three possible scenarios for customizing the refresh service:
 
-Here are three potential scenarios for customizing the refresh service:
+- [Refresh service customization](#refresh-service-customization)
+    - [2. Refresh service from scratch:](#2-refresh-service-from-scratch)
+    - [3. Flexible HTTP package](#3-flexible-http-package)
+    - [Links:](#links)
 
-1. Extend customization by incorporating custom providers and integrating them into the refresh flow.
-2. Utilize the [flexible HTTP package](https://github.com/0xPolygonID/refresh-service/blob/main/providers/flexiblehttp/http.go) to configure HTTP requests to a data provider. Refer to the [configuration guide](https://github.com/0xPolygonID/refresh-service/blob/main/README.md) for instructions on how to set this up.
-3. For ultimate customization, consider implementing the refresh service from scratch to tailor it precisely to your specific needs.
+###1. Custom provider example:
 
-**Custom provider example:**
+Extend customization by incorporating custom providers and integrating them into the refresh flow.
 
 This is the easiest way to add custom business logic to retrieve data from a data provider.</br>
 [An example implementation of a custom provider](https://github.com/0xPolygonID/refresh-service/pull/5).
@@ -56,7 +57,11 @@ This is the easiest way to add custom business logic to retrieve data from a dat
 
     ![create a proof request](assets/proof-request.png)
 
-**Refresh service from scratch:**
+
+
+### 2. Refresh service from scratch:
+
+For ultimate customization, consider implementing the refresh service from scratch to tailor it precisely to your specific needs.
 
 Implementing a refresh service from scratch can be useful when you have your own isuer node implementation or have special data processing logic, etc.</br>
 In its simplest form, the refresh service is designed with four integral components:
@@ -85,6 +90,7 @@ To authorise the user’s JWZ token, it is necessary to define a function that v
 
 > **NOTE:** It is crucial to verify whether a user is the owner of the credential that potentially will be refreshed. Without this verification, an attacker could refresh and obtain a third-party credential.
 > 
+
 
 **Integration with issuer node**
 
@@ -137,3 +143,15 @@ Let's consider the diagram that describes in detail the algorithm of the refresh
 7. With the new data from the data provider, the refresh service generates a credential request and sends it to the issuer node via the `POST /v1/{issuerDID}/claims` endpoint. The issuer node is expected to respond with a new credential ID.
 8. Using this ID, the refresh service obtains a new credential through the `GET /v1/{issuerDID}/claims/{newCredentialID}` endpoint. 
 9. Thne the refreshed credential is then packaged into an iden3comm message and sent back to the user.
+
+
+
+### 3. Flexible HTTP package
+Utilize the [flexible HTTP package](https://github.com/0xPolygonID/refresh-service/blob/main/providers/flexiblehttp/http.go) to configure HTTP requests to a data provider. Refer to the [configuration guide](https://github.com/0xPolygonID/refresh-service/blob/main/README.md) for instructions on how to set this up.
+
+---
+
+### Links:
+
+- [Iden3comm refresh protocol](https://iden3-communication.io/credentials/1.0/refresh/)
+- [W3C Refresh service TODO:](https://iden3-communication.io/)
