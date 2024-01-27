@@ -2,12 +2,12 @@
 
 Here are three possible scenarios for customizing the refresh service:
 
-- [Refresh service customization](#refresh-service-customization)
-    - [2. Refresh service from scratch:](#2-refresh-service-from-scratch)
-    - [3. Flexible HTTP package](#3-flexible-http-package)
-    - [Links:](#links)
+- [1.Refresh service customization](#refresh-service-customization)
+- [2. Refresh service from scratch:](#2-refresh-service-from-scratch)
+- [3. Flexible HTTP package](#3-flexible-http-package)
+- [Links:](#links)
 
-###1. Custom provider example:
+### 1. Custom provider example:
 
 Extend customization by incorporating custom providers and integrating them into the refresh flow.
 
