@@ -111,11 +111,11 @@ func NewPackageManager(
 		opt(options)
 	}
 
-	circuitsPath := fmt.Sprintf("%s/%s", options.VerificationKeyPath, "authV2")
-	verificationKey, err := os.ReadFile(fmt.Sprintf("%s/verification_key.json", circuitsPath))
+	authV2VerificationKeyPath := fmt.Sprintf("%s/authV2.json", options.VerificationKeyPath)
+	verificationKey, err := os.ReadFile(authV2VerificationKeyPath)
 	if err != nil {
 		return nil, errors.Errorf(
-			"issuer with the file verification_key.json by path '%s': %v", circuitsPath, err)
+			"issuer with the file verification_key.json by path '%s': %v", authV2VerificationKeyPath, err)
 	}
 
 	states := state{
