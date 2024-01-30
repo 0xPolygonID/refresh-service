@@ -43,6 +43,7 @@ type credentialRequest struct {
 	Expiration        int64                      `json:"expiration"`
 	RefreshService    *verifiable.RefreshService `json:"refreshService,omitempty"`
 	RevNonce          *uint64                    `json:"revNonce,omitempty"`
+	DisplayMethod     *verifiable.DisplayMethod  `json:"displayMethod,omitempty"`
 }
 
 func (rs *RefreshService) Process(issuer string,
@@ -116,6 +117,7 @@ func (rs *RefreshService) Process(issuer string,
 		Expiration:        time.Now().Add(flexibleHTTP.Settings.TimeExpiration).Unix(),
 		RefreshService:    credential.RefreshService,
 		RevNonce:          &revNonce,
+		DisplayMethod:     credential.DisplayMethod,
 	}
 
 	refreshedID, err := rs.issuerService.CreateCredential(issuer, credentialRequest)

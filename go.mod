@@ -7,12 +7,12 @@ require (
 	github.com/go-chi/chi/v5 v5.0.10
 	github.com/google/uuid v1.3.0
 	github.com/iden3/contracts-abi/state/go/abi v1.0.1
-	github.com/iden3/go-circuits/v2 v2.0.0
-	github.com/iden3/go-iden3-core/v2 v2.0.0
-	github.com/iden3/go-jwz/v2 v2.0.0
-	github.com/iden3/go-schema-processor/v2 v2.1.0
-	github.com/iden3/iden3comm/v2 v2.0.1-0.20231030214854-7a0511d0e7cc
-	github.com/ipfs/go-ipfs-api v0.6.0
+	github.com/iden3/go-circuits/v2 v2.0.1
+	github.com/iden3/go-iden3-core/v2 v2.0.3
+	github.com/iden3/go-jwz/v2 v2.0.1
+	github.com/iden3/go-schema-processor/v2 v2.2.0
+	github.com/iden3/iden3comm/v2 v2.1.0
+	github.com/ipfs/go-ipfs-api v0.7.0
 	github.com/kelseyhightower/envconfig v1.4.0
 	github.com/piprate/json-gold v0.5.1-0.20230111113000-6ddbe6e6f19f
 	github.com/pkg/errors v0.9.1
@@ -27,6 +27,7 @@ require (
 	github.com/StackExchange/wmi v1.2.1 // indirect
 	github.com/benbjohnson/clock v1.3.5 // indirect
 	github.com/bits-and-blooms/bitset v1.5.0 // indirect
+	github.com/blang/semver/v4 v4.0.0 // indirect
 	github.com/btcsuite/btcd/btcec/v2 v2.2.0 // indirect
 	github.com/consensys/bavard v0.1.13 // indirect
 	github.com/consensys/gnark-crypto v0.10.0 // indirect
@@ -51,7 +52,7 @@ require (
 	github.com/iden3/go-rapidsnark/verifier v0.0.5 // indirect
 	github.com/iden3/go-rapidsnark/witness/v2 v2.0.0 // indirect
 	github.com/iden3/go-rapidsnark/witness/wazero v0.0.0-20230524142950-0986cf057d4e // indirect
-	github.com/ipfs/boxo v0.8.0 // indirect
+	github.com/ipfs/boxo v0.12.0 // indirect
 	github.com/ipfs/go-cid v0.4.1 // indirect
 	github.com/klauspost/cpuid/v2 v2.2.5 // indirect
 	github.com/lestrrat-go/blackmagic v1.0.1 // indirect
@@ -72,7 +73,7 @@ require (
 	github.com/multiformats/go-multiaddr v0.9.0 // indirect
 	github.com/multiformats/go-multibase v0.2.0 // indirect
 	github.com/multiformats/go-multicodec v0.9.0 // indirect
-	github.com/multiformats/go-multihash v0.2.2 // indirect
+	github.com/multiformats/go-multihash v0.2.3 // indirect
 	github.com/multiformats/go-multistream v0.4.1 // indirect
 	github.com/multiformats/go-varint v0.0.7 // indirect
 	github.com/pmezard/go-difflib v1.0.0 // indirect
@@ -85,7 +86,6 @@ require (
 	github.com/tetratelabs/wazero v1.1.0 // indirect
 	github.com/tklauser/go-sysconf v0.3.12 // indirect
 	github.com/tklauser/numcpus v0.6.1 // indirect
-	github.com/whyrusleeping/tar-utils v0.0.0-20201201191210-20a61371de5b // indirect
 	go.uber.org/atomic v1.11.0 // indirect
 	go.uber.org/multierr v1.11.0 // indirect
 	golang.org/x/crypto v0.12.0 // indirect
