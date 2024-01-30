@@ -6,13 +6,14 @@ It is **important to note** that the refresh service imposes a constraint on non
 To run this service, users should manage two configurations: one in a `.env` file and another in `config.yaml`. `.env` configuration is used for configure the server, `config.yaml` configuration is used for configure HTTP data provider.
 1. `.env` file:
     ```
-    SUPPORTED_ISSUERS - A list of supported issuers in the format `issuerDID:issuerNodeURL`. You can also use `*` to set a default node.
+    SUPPORTED_ISSUERS - A list of supported issuers in the format `issuerDID=issuerNodeURL`. You can also use `*` to set a default node.
     IPFS_URL - The URL of the IPFS node.
     SERVER_PORT - The server port. The default is 8002.
     HTTP_CONFIG_PATH - The path to the HTTP configuration.
-    SUPPORTED_RPC - Supported RPC in the format `chainID:URL`.
-    SUPPORTED_STATE_CONTRACTS - Supported state contracts in the format `chainID:contractAddress`.
+    SUPPORTED_RPC - Supported RPC in the format `chainID=URL`.
+    SUPPORTED_STATE_CONTRACTS - Supported state contracts in the format `chainID=contractAddress`.
     CIRCUITS_FOLDER_PATH - The path to the circuits folder.
+    ISSUERS_BASIC_AUTH - Basic auth for issuer int the format `issuerDID=user:password`. You can also use `*` to set the basic auth for all issuers.
     ```
 2. `config.yaml` for configure HTTP request to data providers:
 Example:
