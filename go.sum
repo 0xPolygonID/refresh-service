@@ -85,6 +85,8 @@ github.com/iden3/go-circuits/v2 v2.0.0 h1:Bw0mpsqeip06d6I2ktgfhTVB7Jk9mSHi8myHZW
 github.com/iden3/go-circuits/v2 v2.0.0/go.mod h1:VIFIp51+IH0hOzjnKhb84bCeyq7hq76zX/C14ua6zh4=
 github.com/iden3/go-iden3-core/v2 v2.0.0 h1:sQEuuq3RLfyYSY8qPiqxQ6YBpGbiAwepHJD/vjf1adA=
 github.com/iden3/go-iden3-core/v2 v2.0.0/go.mod h1:L9PxhWPvoS9qTb3inEkZBm1RpjHBt+VTwvxssdzbAdw=
+github.com/iden3/go-iden3-core/v2 v2.0.3 h1:ce9Jbw10zDsinWXFc05SiK2Hof/wu4zV4/ai5gQy29k=
+github.com/iden3/go-iden3-core/v2 v2.0.3/go.mod h1:L9PxhWPvoS9qTb3inEkZBm1RpjHBt+VTwvxssdzbAdw=
 github.com/iden3/go-iden3-crypto v0.0.15 h1:4MJYlrot1l31Fzlo2sF56u7EVFeHHJkxGXXZCtESgK4=
 github.com/iden3/go-iden3-crypto v0.0.15/go.mod h1:dLpM4vEPJ3nDHzhWFXDjzkn1qHoBeOT/3UEhXsEsP3E=
 github.com/iden3/go-jwz/v2 v2.0.0 h1:VsU2PrmcchPMx/V0IhamMZRNjiQYZoyJopO8K8uSZOY=
@@ -103,6 +105,8 @@ github.com/iden3/go-rapidsnark/witness/wazero v0.0.0-20230524142950-0986cf057d4e
 github.com/iden3/go-rapidsnark/witness/wazero v0.0.0-20230524142950-0986cf057d4e/go.mod h1:UEBifEzw62T6VzIHJeHuUgeLg2U/J9ttf7hOwQEqnYk=
 github.com/iden3/go-schema-processor/v2 v2.1.0 h1:8/fA7IVkyVmpbJij9Ar0X2zWPQJMlCaaPP4hfTZqbqU=
 github.com/iden3/go-schema-processor/v2 v2.1.0/go.mod h1:EogHwnFnxQKOGRVme6upCcisoAQeEIl+HuRAGa7w3+w=
+github.com/iden3/go-schema-processor/v2 v2.2.0 h1:sYPqLs72pEWXIfF0/MOv9AFm3+IGutRM3yClWRrjheg=
+github.com/iden3/go-schema-processor/v2 v2.2.0/go.mod h1:Ovsrk0839NZgHtoW4hVLAmHoOsHAQZuVNUXd7sIOkLQ=
 github.com/iden3/iden3comm/v2 v2.0.1-0.20231030214854-7a0511d0e7cc h1:VciWdH3N9hufuIn6w/SOys8+Bzjy8LD0l1f5aN2sghE=
 github.com/iden3/iden3comm/v2 v2.0.1-0.20231030214854-7a0511d0e7cc/go.mod h1:wrXoxi8eoQSLopatRW5+hYF9lDRvzGL2As9ZE88q/kA=
 github.com/ipfs/boxo v0.8.0 h1:UdjAJmHzQHo/j3g3b1bAcAXCj/GM6iTwvSlBDvPBNBs=

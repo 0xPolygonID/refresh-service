@@ -14,10 +14,10 @@ RUN apk add --no-cache libstdc++ gcompat libgomp
 
 WORKDIR /app
 
-COPY ./circuits circuits
+COPY ./keys keys
 COPY --from=base /build/refresh-service refresh-service
 COPY --from=base /etc/ssl/certs/ca-certificates.crt /etc/ssl/certs/
 
-ENV CIRCUITS_FOLDER_PATH=/app/circuits
+ENV CIRCUITS_FOLDER_PATH=/app/keys
 
 ENTRYPOINT ["/app/refresh-service"]

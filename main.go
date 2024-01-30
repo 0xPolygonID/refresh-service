@@ -64,7 +64,7 @@ func main() {
 	packageManager, err := packagemanager.NewPackageManager(
 		cfg.SupportedRPC,
 		cfg.SupportedStateContracts,
-		cfg.CircuitsFolderPath,
+		packagemanager.WithVerificationKeyPath(cfg.CircuitsFolderPath),
 	)
 	if err != nil {
 		log.Fatalf("failed init package manager: %v", err)
