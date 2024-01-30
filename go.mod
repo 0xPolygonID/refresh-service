@@ -10,7 +10,7 @@ require (
 	github.com/iden3/go-circuits/v2 v2.0.0
 	github.com/iden3/go-iden3-core/v2 v2.0.3
 	github.com/iden3/go-jwz/v2 v2.0.0
-	github.com/iden3/go-schema-processor/v2 v2.1.0
+	github.com/iden3/go-schema-processor/v2 v2.2.0
 	github.com/iden3/iden3comm/v2 v2.0.1-0.20231030214854-7a0511d0e7cc
 	github.com/ipfs/go-ipfs-api v0.6.0
 	github.com/kelseyhightower/envconfig v1.4.0
