@@ -55,6 +55,18 @@ type Config struct {
 	SupportedIssuersBasicAuth KVstring `envconfig:"ISSUERS_BASIC_AUTH"`
 }
 
+func (c *Config) getServerHost() string {
+	return strings.TrimSuffix(c.ServerHost, "/")
+}
+
+func (c *Config) getSupportedIssuers() map[string]string {
+	var supportedIssuers = make(map[string]string, len(c.SupportedIssuers))
+	for k, v := range c.SupportedIssuers {
+		supportedIssuers[k] = strings.TrimSuffix(v, "/")
+	}
+	return supportedIssuers
+}
+
 func main() {
 	var cfg Config
 	if err := envconfig.Process("", &cfg); err != nil {
@@ -71,7 +83,7 @@ func main() {
 	}
 
 	issuerService := service.NewIssuerService(
-		cfg.SupportedIssuers,
+		cfg.getSupportedIssuers(),
 		cfg.SupportedIssuersBasicAuth,
 		nil,
 	)
@@ -108,5 +120,5 @@ func main() {
 		agentService,
 	)
 
-	log.Fatal(h.Run(cfg.ServerHost))
+	log.Fatal(h.Run(cfg.getServerHost()))
 }
