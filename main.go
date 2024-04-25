@@ -7,12 +7,13 @@ import (
 
 	_ "github.com/0xPolygonID/refresh-service/logger"
 	"github.com/0xPolygonID/refresh-service/packagemanager"
+	"github.com/0xPolygonID/refresh-service/pkg/ipfs"
 	"github.com/0xPolygonID/refresh-service/providers/flexiblehttp"
 	"github.com/0xPolygonID/refresh-service/server"
 	"github.com/0xPolygonID/refresh-service/service"
 	"github.com/iden3/go-schema-processor/v2/loaders"
-	shell "github.com/ipfs/go-ipfs-api"
 	"github.com/kelseyhightower/envconfig"
+	"github.com/piprate/json-gold/ld"
 	"github.com/pkg/errors"
 )
 
@@ -46,13 +47,13 @@ func (c *KVstring) Decode(value string) error {
 
 type Config struct {
 	SupportedIssuers          KVstring `envconfig:"SUPPORTED_ISSUERS" required:"true"`
-	IPFSURL                   string   `envconfig:"IPFS_URL" required:"true"`
+	IPFSURLGateway            string   `envconfig:"IPFS_URL_GATEWAY" default:"https://ipfs.io"`
 	ServerHost                string   `envconfig:"SERVER_HOST" default:"localhost:8002"`
 	HTTPConfigPath            string   `envconfig:"HTTP_CONFIG_PATH" default:"config.yaml"`
 	SupportedRPC              KVstring `envconfig:"SUPPORTED_RPC" required:"true"`
 	SupportedStateContracts   KVstring `envconfig:"SUPPORTED_STATE_CONTRACTS" required:"true"`
-	CircuitsFolderPath        string   `envconfig:"CIRCUITS_FOLDER_PATH" default:"circuits"`
-	SupportedIssuersBasicAuth KVstring `envconfig:"ISSUERS_BASIC_AUTH"`
+	CircuitsFolderPath        string   `envconfig:"CIRCUITS_FOLDER_PATH" default:"keys"`
+	SupportedIssuersBasicAuth KVstring `envconfig:"ISSUERS_BASIC_AUTH" required:"true"`
 }
 
 func (c *Config) getServerHost() string {
@@ -88,14 +89,11 @@ func main() {
 		nil,
 	)
 
-	opts := loaders.WithEmbeddedDocumentBytes(w3cSchemaURL, w3cSchemaBody)
-	memoryCacheEngine, err := loaders.NewMemoryCacheEngine(opts)
+	ipfsCli := ipfs.NewIPFSClient(cfg.IPFSURLGateway)
+	documentLoader, err := initDocumentLoaderWithCache(ipfsCli)
 	if err != nil {
-		log.Fatalf("failed init memory cache engine: %v", err)
+		log.Fatalf("failed init ipfs loader: %v", err)
 	}
-	ipfsCli := shell.NewShell(cfg.IPFSURL)
-	documentLoader := loaders.NewDocumentLoader(ipfsCli, "",
-		loaders.WithCacheEngine(memoryCacheEngine))
 
 	flexhttp, err := flexiblehttp.NewFactoryFlexibleHTTP(
 		cfg.HTTPConfigPath,
@@ -121,4 +119,16 @@ func main() {
 	)
 
 	log.Fatal(h.Run(cfg.getServerHost()))
+}
+
+func initDocumentLoaderWithCache(ipfsCli loaders.IPFSClient) (ld.DocumentLoader, error) {
+	opts := loaders.WithEmbeddedDocumentBytes(
+		w3cSchemaURL, w3cSchemaBody,
+	)
+	memoryCacheEngine, err := loaders.NewMemoryCacheEngine(opts)
+	if err != nil {
+		return nil, err
+	}
+	l := loaders.NewDocumentLoader(ipfsCli, "", loaders.WithCacheEngine(memoryCacheEngine))
+	return l, nil
 }

@@ -7,8 +7,8 @@ To run this service, users should manage two configurations: one in a `.env` fil
 1. `.env` file:
     ```
     SUPPORTED_ISSUERS - A list of supported issuers in the format `issuerDID=issuerNodeURL`. You can also use `*` to set a default node.
-    IPFS_URL - The URL of the IPFS node.
-    SERVER_PORT - The server port. The default is 8002.
+    IPFS_URL_GATEWAY - The URL of the IPFS gateway.
+    SERVER_HOST - The server host. Format: address:port. The default is localhost:8002.
     HTTP_CONFIG_PATH - The path to the HTTP configuration.
     SUPPORTED_RPC - Supported RPC in the format `chainID=URL`.
     SUPPORTED_STATE_CONTRACTS - Supported state contracts in the format `chainID=contractAddress`.
@@ -71,5 +71,5 @@ Example:
     ```
 2. Run the docker container:
     ```bash
-    docker run --env-file .env -v ./config.yaml:/app/config.yaml .
+    docker run --env-file .env -v ./config.yaml:/app/config.yaml -p 8002:8002 refresh-service:local
     ```
