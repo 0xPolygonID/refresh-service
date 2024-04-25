@@ -3,6 +3,7 @@ package server
 import (
 	"io"
 	"net/http"
+	"strings"
 	"time"
 
 	"github.com/0xPolygonID/refresh-service/logger"
@@ -64,6 +65,7 @@ func (h *Handlers) Run(host string) error {
 		}
 	})
 
+	host = strings.Trim(host, "\"")
 	logger.DefaultLogger.Infof("Server starting on host '%s'", host)
 	httpServer := &http.Server{
 		Addr:              host,
