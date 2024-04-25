@@ -12,6 +12,7 @@ import (
 	"github.com/0xPolygonID/refresh-service/service"
 	"github.com/iden3/go-schema-processor/v2/loaders"
 	"github.com/kelseyhightower/envconfig"
+	"github.com/piprate/json-gold/ld"
 	"github.com/pkg/errors"
 )
 
@@ -45,12 +46,12 @@ func (c *KVstring) Decode(value string) error {
 
 type Config struct {
 	SupportedIssuers          KVstring `envconfig:"SUPPORTED_ISSUERS" required:"true"`
-	IPFSGWURL                 string   `envconfig:"IPFS_GATEWAY_URL" required:"true"`
+	IPFSGWURL                 string   `envconfig:"IPFS_GATEWAY_URL" default:"https://ipfs.io"`
 	ServerHost                string   `envconfig:"SERVER_HOST" default:"localhost:8002"`
 	HTTPConfigPath            string   `envconfig:"HTTP_CONFIG_PATH" default:"config.yaml"`
 	SupportedRPC              KVstring `envconfig:"SUPPORTED_RPC" required:"true"`
 	SupportedStateContracts   KVstring `envconfig:"SUPPORTED_STATE_CONTRACTS" required:"true"`
-	CircuitsFolderPath        string   `envconfig:"CIRCUITS_FOLDER_PATH" default:"circuits"`
+	CircuitsFolderPath        string   `envconfig:"CIRCUITS_FOLDER_PATH" default:"keys"`
 	SupportedIssuersBasicAuth KVstring `envconfig:"ISSUERS_BASIC_AUTH"`
 	SupportedCustomDIDMethods string   `envconfig:"SUPPORTED_CUSTOM_DID_METHODS"`
 }
@@ -89,14 +90,10 @@ func main() {
 		nil,
 	)
 
-	opts := loaders.WithEmbeddedDocumentBytes(w3cSchemaURL, w3cSchemaBody)
-	memoryCacheEngine, err := loaders.NewMemoryCacheEngine(opts)
+	documentLoader, err := initDocumentLoaderWithCache(cfg.IPFSGWURL)
 	if err != nil {
-		log.Fatalf("failed init memory cache engine: %v", err)
+		log.Fatalf("failed init document loader: %v", err)
 	}
-
-	documentLoader := loaders.NewDocumentLoader(nil, cfg.IPFSGWURL,
-		loaders.WithCacheEngine(memoryCacheEngine))
 
 	flexhttp, err := flexiblehttp.NewFactoryFlexibleHTTP(
 		cfg.HTTPConfigPath,
@@ -122,4 +119,16 @@ func main() {
 	)
 
 	log.Fatal(h.Run(cfg.getServerHost()))
+}
+
+func initDocumentLoaderWithCache(ipfsGW string) (ld.DocumentLoader, error) {
+	opts := loaders.WithEmbeddedDocumentBytes(
+		w3cSchemaURL, w3cSchemaBody,
+	)
+	memoryCacheEngine, err := loaders.NewMemoryCacheEngine(opts)
+	if err != nil {
+		return nil, err
+	}
+	l := loaders.NewDocumentLoader(nil, ipfsGW, loaders.WithCacheEngine(memoryCacheEngine))
+	return l, nil
 }
