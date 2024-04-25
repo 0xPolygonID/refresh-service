@@ -11,7 +11,6 @@ import (
 	"github.com/0xPolygonID/refresh-service/server"
 	"github.com/0xPolygonID/refresh-service/service"
 	"github.com/iden3/go-schema-processor/v2/loaders"
-	shell "github.com/ipfs/go-ipfs-api"
 	"github.com/kelseyhightower/envconfig"
 	"github.com/pkg/errors"
 )
@@ -46,13 +45,14 @@ func (c *KVstring) Decode(value string) error {
 
 type Config struct {
 	SupportedIssuers          KVstring `envconfig:"SUPPORTED_ISSUERS" required:"true"`
-	IPFSURL                   string   `envconfig:"IPFS_URL" required:"true"`
+	IPFSGWURL                 string   `envconfig:"IPFS_GATEWAY_URL"`
 	ServerHost                string   `envconfig:"SERVER_HOST" default:"localhost:8002"`
 	HTTPConfigPath            string   `envconfig:"HTTP_CONFIG_PATH" default:"config.yaml"`
 	SupportedRPC              KVstring `envconfig:"SUPPORTED_RPC" required:"true"`
 	SupportedStateContracts   KVstring `envconfig:"SUPPORTED_STATE_CONTRACTS" required:"true"`
 	CircuitsFolderPath        string   `envconfig:"CIRCUITS_FOLDER_PATH" default:"circuits"`
 	SupportedIssuersBasicAuth KVstring `envconfig:"ISSUERS_BASIC_AUTH"`
+	SupportedCustomDIDMethods string   `envconfig:"SUPPORTED_CUSTOM_DID_METHODS"`
 }
 
 func (c *Config) getServerHost() string {
@@ -77,6 +77,7 @@ func main() {
 		cfg.SupportedRPC,
 		cfg.SupportedStateContracts,
 		packagemanager.WithVerificationKeyPath(cfg.CircuitsFolderPath),
+		packagemanager.WithCustomDIDMethods(cfg.SupportedCustomDIDMethods),
 	)
 	if err != nil {
 		log.Fatalf("failed init package manager: %v", err)
@@ -93,8 +94,8 @@ func main() {
 	if err != nil {
 		log.Fatalf("failed init memory cache engine: %v", err)
 	}
-	ipfsCli := shell.NewShell(cfg.IPFSURL)
-	documentLoader := loaders.NewDocumentLoader(ipfsCli, "",
+
+	documentLoader := loaders.NewDocumentLoader(nil, cfg.IPFSGWURL,
 		loaders.WithCacheEngine(memoryCacheEngine))
 
 	flexhttp, err := flexiblehttp.NewFactoryFlexibleHTTP(

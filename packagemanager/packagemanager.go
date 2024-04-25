@@ -25,6 +25,22 @@ type state struct {
 	globalStateValidDuration time.Duration
 }
 
+func registerCustomDIDMethods(cdm []CustomDIDMethods) error {
+	for _, network := range cdm {
+		params := core.DIDMethodNetworkParams{
+			Method:      core.DIDMethodPolygonID,
+			Blockchain:  core.Blockchain(network.Blockchain),
+			Network:     core.NetworkID(network.Network),
+			NetworkFlag: network.NetworkFlag,
+		}
+		err := core.RegisterDIDMethodNetwork(params, core.WithChainID(network.ChainID))
+		if err != nil {
+			return errors.Errorf("did method can't be registered: %v", err)
+		}
+	}
+	return nil
+}
+
 func (s *state) verify(_ circuits.CircuitID, pubsignals []string) error {
 	bytePubsig, err := json.Marshal(pubsignals)
 	if err != nil {
@@ -39,7 +55,7 @@ func (s *state) verify(_ circuits.CircuitID, pubsignals []string) error {
 
 	userDID, err := core.ParseDIDFromID(*authPubSignals.UserID)
 	if err != nil {
-		return errors.Errorf("error convertign userID '%s' to userDID: %v",
+		return errors.Errorf("error converting userID '%s' to userDID: %v",
 			authPubSignals.UserID.String(), err)
 	}
 
@@ -81,9 +97,47 @@ func (s *state) verify(_ circuits.CircuitID, pubsignals []string) error {
 type Options struct {
 	VerificationKeyPath      string
 	GlobalStateValidDuration time.Duration
+	CustomDIDMethods         []CustomDIDMethods `mapstructure:"-"`
 }
 
 type Option func(*Options)
+
+// CustomDIDMethods struct
+// Example: SUPPORTED_CUSTOM_DID_METHODS='[{"blockchain":"linea","network":"testnet","networkFlag":"0b01000001","chainID":59140}]'
+type CustomDIDMethods struct {
+	Blockchain  string `tip:"Identity blockchain for custom network"`
+	Network     string `tip:"Identity network for custom network"`
+	NetworkFlag byte   `tip:"Identity network flag for custom network"`
+	ChainID     int    `tip:"Chain id for custom network"`
+}
+
+// UnmarshalJSON implements the Unmarshal interface for CustomDIDMethods
+func (cn *CustomDIDMethods) UnmarshalJSON(data []byte) error {
+	aux := struct {
+		Blockchain  string `json:"blockchain"`
+		Network     string `json:"network"`
+		NetworkFlag string `json:"networkFlag"`
+		ChainID     int    `json:"chainId"`
+	}{}
+
+	if err := json.Unmarshal(data, &aux); err != nil {
+		return err
+	}
+	if len(aux.NetworkFlag) != 10 || aux.NetworkFlag[:2] != "0b" {
+		return errors.New("invalid NetworkFlag format")
+	}
+	flag, err := strconv.ParseUint(aux.NetworkFlag[2:], 2, 8)
+	if err != nil {
+		return err
+	}
+
+	cn.Blockchain = aux.Blockchain
+	cn.Network = aux.Network
+	cn.NetworkFlag = byte(flag)
+	cn.ChainID = aux.ChainID
+
+	return nil
+}
 
 func WithVerificationKeyPath(path string) Option {
 	return func(o *Options) {
@@ -97,6 +151,18 @@ func WithGlobalStateValidDuration(duration time.Duration) Option {
 	}
 }
 
+func WithCustomDIDMethods(jsonStr string) Option {
+	return func(o *Options) {
+		var customDIDMethods []CustomDIDMethods
+		if jsonStr != "" {
+			if err := json.Unmarshal([]byte(jsonStr), &customDIDMethods); err != nil {
+				customDIDMethods = nil
+			}
+		}
+		o.CustomDIDMethods = customDIDMethods
+	}
+}
+
 func NewPackageManager(
 	supportedRPC map[string]string,
 	supportedStateContracts map[string]string,
@@ -106,9 +172,15 @@ func NewPackageManager(
 	options := &Options{
 		VerificationKeyPath:      "/keys",
 		GlobalStateValidDuration: time.Minute * 15,
+		CustomDIDMethods:         []CustomDIDMethods{},
 	}
 	for _, opt := range opts {
 		opt(options)
+	}
+
+	err := registerCustomDIDMethods(options.CustomDIDMethods)
+	if err != nil {
+		return nil, err
 	}
 
 	authV2VerificationKeyPath := fmt.Sprintf("%s/authV2.json", options.VerificationKeyPath)

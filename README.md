@@ -7,7 +7,7 @@ To run this service, users should manage two configurations: one in a `.env` fil
 1. `.env` file:
     ```
     SUPPORTED_ISSUERS - A list of supported issuers in the format `issuerDID=issuerNodeURL`. You can also use `*` to set a default node.
-    IPFS_URL - The URL of the IPFS node.
+    IPFS_GATEWAY_URL - The URL of the IPFS gateway.
     SERVER_PORT - The server port. The default is 8002.
     HTTP_CONFIG_PATH - The path to the HTTP configuration.
     SUPPORTED_RPC - Supported RPC in the format `chainID=URL`.

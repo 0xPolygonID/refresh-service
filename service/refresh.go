@@ -10,6 +10,7 @@ import (
 	core "github.com/iden3/go-iden3-core/v2"
 	jsonproc "github.com/iden3/go-schema-processor/v2/json"
 	"github.com/iden3/go-schema-processor/v2/merklize"
+	"github.com/iden3/go-schema-processor/v2/processor"
 	"github.com/iden3/go-schema-processor/v2/verifiable"
 	"github.com/piprate/json-gold/ld"
 	"github.com/pkg/errors"
@@ -179,7 +180,11 @@ func (rs *RefreshService) isUpdatedIndexSlots(
 	credential *verifiable.W3CCredential,
 	oldValues, newValues map[string]interface{},
 ) error {
-	claim, err := jsonproc.Parser{}.ParseClaim(ctx, *credential, nil)
+	claim, err := jsonproc.Parser{}.ParseClaim(ctx, *credential, &processor.CoreClaimOptions{
+		MerklizerOpts: []merklize.MerklizeOption{
+			merklize.WithDocumentLoader(rs.documentLoader),
+		},
+	})
 	if err != nil {
 		return errors.Errorf("invalid w3c credential: %v", err)
 	}
