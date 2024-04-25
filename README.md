@@ -68,11 +68,7 @@ Example:
     ```
 
 ## How to run:
-1. Build the docker container:
+1. Run docker-compose file:
     ```bash
-    docker build -t refresh-service:local .
-    ```
-2. Run the docker container:
-    ```bash
-    docker run --env-file .env -v ./config.yaml:/app/config.yaml -p 8002:8002 refresh-service:local
+    docker-compose up -d
     ```
