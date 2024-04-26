@@ -5,16 +5,19 @@ It is **important to note** that the refresh service imposes a constraint on non
 
 To run this service, users should manage two configurations: one in a `.env` file and another in `config.yaml`. `.env` configuration is used for configure the server, `config.yaml` configuration is used for configure HTTP data provider.
 1. `.env` file:
-    ```
-    SUPPORTED_ISSUERS - A list of supported issuers in the format `issuerDID=issuerNodeURL`. You can also use `*` to set a default node.
-    IPFS_URL - The URL of the IPFS node.
-    SERVER_PORT - The server port. The default is 8002.
-    HTTP_CONFIG_PATH - The path to the HTTP configuration.
-    SUPPORTED_RPC - Supported RPC in the format `chainID=URL`.
-    SUPPORTED_STATE_CONTRACTS - Supported state contracts in the format `chainID=contractAddress`.
-    CIRCUITS_FOLDER_PATH - The path to the circuits folder.
-    ISSUERS_BASIC_AUTH - Basic auth for issuer int the format `issuerDID=user:password`. You can also use `*` to set the basic auth for all issuers.
-    ```
+ 
+| Config Name                | Description                                                                                   | Required | Default Value       | Format   | Example                                                           |
+|----------------------------|-----------------------------------------------------------------------------------------------|----------|---------------------|----------|-------------------------------------------------------------------|
+| SUPPORTED_ISSUERS          | A list of supported issuers with their corresponding node URLs.                               | Yes      | -                   | `issuerDID=issuerNodeURL,...` | `did:example:issuer1=https://issuer1.com,did:example:issuer2=https://issuer2.com`<br/>or<br/>`*=https://common.issuer.com>` |
+| IPFS_GATEWAY_URL           | The URL of the IPFS gateway.                                                                 | No       | https://ipfs.io                   | URL      | `https://ipfs.example.com`                                       |
+| SERVER_HOST                | The server host.                                                                              | No       | localhost:8002      | Host:Port | `localhost:8002`                                                  |
+| HTTP_CONFIG_PATH           | The path to the HTTP provider configuration.                                                           | No       | config.yaml                   | Path     | `/path/to/http/config`                                           |
+| SUPPORTED_RPC              | Supported RPC endpoints for different blockchain chains.                                      | Yes      | -                   | `chainID=RPC_URL,...` | `80002=https://amoy.infura,137=https://main.infura` |
+| SUPPORTED_STATE_CONTRACTS  | Supported state contracts for different blockchain chains.                                    | Yes      | -                   | `chainID=contractAddress,...` | `80002=0x123abc...,137=0x456def...`                        |
+| CIRCUITS_FOLDER_PATH       | The path to the circuits folder.                                                             | No       | keys                   | Path     | `/path/to/circuits`                                               |
+| ISSUERS_BASIC_AUTH         | Basic authentication credentials for issuer nodes.                                            | No       | -                   | `issuerDID=user:password,...` | `did:example:issuer1=admin:pass123,did:example:issuer2=guest:pass321`<br/>or<br/>`*=common:pass987` |
+| SUPPORTED_CUSTOM_DID_METHODS | Register custom networks for DID methods.                                                     | No       | -                   | JSON Array | `[{"blockchain":"linea","network":"testnet","networkFlag":"0b01000001","chainID":59140}]` |
+
 2. `config.yaml` for configure HTTP request to data providers:
 Example:
     ```yml
@@ -65,11 +68,7 @@ Example:
     ```
 
 ## How to run:
-1. Build the docker container:
+1. Run docker-compose file:
     ```bash
-    docker build -t refresh-service:local .
-    ```
-2. Run the docker container:
-    ```bash
-    docker run --env-file .env -v ./config.yaml:/app/config.yaml .
+    docker-compose up -d
     ```
