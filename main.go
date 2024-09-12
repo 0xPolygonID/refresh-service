@@ -25,13 +25,15 @@ var (
 type KVstring map[string]string
 
 func (c *KVstring) Decode(value string) error {
+	const delimiter = ";"
+
 	value = strings.Trim(value, "\"")
 	if value == "" {
 		*c = make(map[string]string)
 		return nil
 	}
 	contracts := make(map[string]string)
-	pairs := strings.Split(value, ",")
+	pairs := strings.Split(value, delimiter)
 	for _, pair := range pairs {
 		kvpair := strings.Split(pair, "=")
 		if len(kvpair) != 2 {
