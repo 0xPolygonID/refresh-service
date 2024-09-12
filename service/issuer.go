@@ -49,7 +49,7 @@ func (is *IssuerService) GetClaimByID(issuerDID, claimID string) (*verifiable.W3
 
 	getRequest, err := http.NewRequest(
 		http.MethodGet,
-		fmt.Sprintf("%s/v1/%s/claims/%s", issuerNode, issuerDID, claimID),
+		fmt.Sprintf("%s/v2/identities/%s/credentials/%s", issuerNode, issuerDID, claimID),
 		http.NoBody,
 	)
 	if err != nil {
@@ -98,7 +98,7 @@ func (is *IssuerService) CreateCredential(issuerDID string, credentialRequest cr
 
 	postRequest, err := http.NewRequest(
 		http.MethodPost,
-		fmt.Sprintf("%s/v1/%s/claims", issuerNode, issuerDID),
+		fmt.Sprintf("%s/v2/identities/%s/credentials", issuerNode, issuerDID),
 		body,
 	)
 	if err != nil {
