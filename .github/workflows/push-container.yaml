@@ -1,46 +1,57 @@
-name: Publish refresh service
+name: Push refresh service to AWS ECR
+
 on:
   workflow_dispatch:
+  push:
+    branches:
+      - main
+
+env:
+  AWS_ACCOUNT_ID: ${{ secrets.AWS_ACCOUNT_ID_PRIVADO_ID }}
+  AWS_DEFAULT_REGION: ${{ secrets.AWS_REGION_PRIVADO_ID }}
+  ECR_REPOSITORY: refresh_service
 
 jobs:
-  build_refresh_service:
-    runs-on: ubuntu-22.04
+  deploy:
+    environment:
+      name: ${{ github.ref_name }}
+    name: Build and deploy refresh service to AWS ECR
+    runs-on: ubuntu-latest
+    permissions:
+      id-token: write
+      contents: write
     steps:
       - name: Checkout
         uses: actions/checkout@v4
 
-      - name: Login to GitHub Container Registry
-        uses: docker/login-action@v3
+      - uses: actions/setup-node@v4
         with:
-          registry: ghcr.io
-          username: ${{ github.actor }}
-          password: ${{ secrets.GITHUB_TOKEN }}
+          node-version: 16
 
-      - name: Install zip and wget utils
-        run: mkdir ./circuits && sudo apt-get install -y zip unzip wget
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          aws-region: ${{ env.AWS_DEFAULT_REGION }}
+          role-to-assume: arn:aws:iam::${{ env.AWS_ACCOUNT_ID }}:role/PolygonIDActionsRole
+          role-session-name: GitHubActionsSession
 
-      - name: Get current branch name
-        id: branch-name
-        uses: tj-actions/branch-names@v7
+      - name: Login to Amazon ECR
+        uses: aws-actions/amazon-ecr-login@v2
+        id: login-ecr
 
-      - name: Download latest circuits 'latest.zip' from S3
-        if: steps.specific_circuits.outcome != 'success'
-        run: wget https://iden3-circuits-bucket.s3.eu-west-1.amazonaws.com/latest.zip -P ./circuits
+      - name: Get version
+        run: echo "::set-output name=VERSION::$(git rev-parse --short HEAD)"
+        id: version
 
-      - name: Unzip circuits to folder
-        if: steps.specific_circuits.outcome != 'success'
-        run: cd circuits && unzip latest.zip && cd - && pwd
-
-      - name: Set up Docker Buildx
-        id: buildx
-        uses: docker/setup-buildx-action@v3
-
-      - name: build and deploy to ghcr.io
+      - name: Build with tag and push image
         env:
-          GITHUB_REF: ${{ github.ref}}
+          ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
+          ECR_REPOSITORY: ${{ env.ECR_REPOSITORY }}
+          IMAGE_TAG: ${{ steps.version.outputs.VERSION }}
         run: |
-          ref="$(echo ${GITHUB_REF} | cut -d'/' -f3)"
-          echo GITHUB_REF - $ref
-          docker buildx build --push \
-           --platform linux/amd64 \
-           -t ghcr.io/0xpolygonid/refresh-service:${ref} -t ghcr.io/0xpolygonid/refresh-service:dev .
+          docker build \
+            -t ${{ env.ECR_REGISTRY }}/${{ env.ECR_REPOSITORY }}:latest \
+            -t ${{ env.ECR_REGISTRY }}/${{ env.ECR_REPOSITORY }}:${{ env.IMAGE_TAG }} .
+
+          docker push ${{ env.ECR_REGISTRY }}/${{ env.ECR_REPOSITORY }}:${{ env.IMAGE_TAG }}
+          docker push ${{ env.ECR_REGISTRY }}/${{ env.ECR_REPOSITORY }}:latest
