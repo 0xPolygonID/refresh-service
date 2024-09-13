@@ -12,7 +12,8 @@ FROM alpine:3.18.4
 
 RUN apk add --no-cache libstdc++ gcompat libgomp; \
     apk add --update busybox>1.3.1-r0; \
-    apk add --update openssl>3.1.4-r1
+    apk add --update openssl>3.1.4-r1; \
+    apk add bash
 
 RUN apk add doas; \
     adduser -S dommyuser -D -G wheel; \
