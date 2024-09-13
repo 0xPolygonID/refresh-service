@@ -49,7 +49,7 @@ func (c *KVstring) Decode(value string) error {
 type Config struct {
 	SupportedIssuers          KVstring `envconfig:"SUPPORTED_ISSUERS" required:"true"`
 	IPFSGWURL                 string   `envconfig:"IPFS_GATEWAY_URL" default:"https://ipfs.io"`
-	ServerHost                string   `envconfig:"SERVER_HOST" default:"localhost:8002"`
+	ServerHost                string   `envconfig:"SERVER_HOST" default:":8002"`
 	HTTPConfigPath            string   `envconfig:"HTTP_CONFIG_PATH" default:"config.yaml"`
 	SupportedRPC              KVstring `envconfig:"SUPPORTED_RPC" required:"true"`
 	SupportedStateContracts   KVstring `envconfig:"SUPPORTED_STATE_CONTRACTS" required:"true"`
