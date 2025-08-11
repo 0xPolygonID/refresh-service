@@ -70,13 +70,16 @@ func (is *IssuerService) GetClaimByID(issuerDID, claimID string) (*verifiable.W3
 		return nil, errors.Wrapf(ErrGetClaim,
 			"invalid status code: '%d'", resp.StatusCode)
 	}
-	credential := &verifiable.W3CCredential{}
-	err = json.NewDecoder(resp.Body).Decode(credential)
+
+	presentation := struct {
+		VC *verifiable.W3CCredential `json:"vc"`
+	}{}
+	err = json.NewDecoder(resp.Body).Decode(&presentation)
 	if err != nil {
-		return credential, errors.Wrapf(ErrGetClaim,
+		return presentation.VC, errors.Wrapf(ErrGetClaim,
 			"failed to decode response: '%v'", err)
 	}
-	return credential, nil
+	return presentation.VC, nil
 }
 
 func (is *IssuerService) CreateCredential(issuerDID string, credentialRequest credentialRequest) (
