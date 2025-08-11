@@ -65,9 +65,9 @@ func (h *Handlers) Run(host string) error {
 		}
 	})
 
-	router.Get("/mock", func(w http.ResponseWriter, r *http.Request) {
+	router.Get("/mock", func(w http.ResponseWriter, _ *http.Request) {
 		w.Header().Set("Content-Type", "application/json")
-		w.Write([]byte(`{"string": "I'm mock refresh service"}`))
+		_, _ = w.Write([]byte(`{"string": "I'm mock refresh service"}`))
 	})
 
 	logger.DefaultLogger.Infof("Server starting on host '%s'", host)

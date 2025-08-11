@@ -65,7 +65,10 @@ func (is *IssuerService) GetClaimByID(issuerDID, claimID string) (*verifiable.W3
 		return nil, errors.Wrapf(ErrGetClaim,
 			"failed http GET request: '%v'", err)
 	}
-	defer resp.Body.Close()
+	defer func() {
+		_ = resp.Body.Close()
+	}()
+
 	if resp.StatusCode != http.StatusOK {
 		return nil, errors.Wrapf(ErrGetClaim,
 			"invalid status code: '%d'", resp.StatusCode)
@@ -117,7 +120,9 @@ func (is *IssuerService) CreateCredential(issuerDID string, credentialRequest cr
 		return id, errors.Wrapf(ErrCreateClaim,
 			"failed http POST request: %v", err)
 	}
-	defer resp.Body.Close()
+	defer func() {
+		_ = resp.Body.Close()
+	}()
 	if resp.StatusCode != http.StatusCreated {
 		return id, errors.Wrap(ErrCreateClaim,
 			"invalid status code")

@@ -1,63 +1,49 @@
-service:
-  golangci-lint-version: 1.x.x
+# golangci-lint configuration v2
+version: "2"
 
 run:
   tests: false
-
   timeout: 2m
-  skip-dirs:
-    - vendor
 
-linters-settings:
-  govet:
-    check-shadowing: false
-  goconst:
-    min-len: 2
-    min-occurrences: 2
-  misspell:
-    locale: US
-  lll:
-    line-length: 140
-  gocritic:
-    enabled-tags:
-      - diagnostic
-      - style
-      - performance
-  gci:
-    skip-generated: false
+formatters:
+  enable:
+    - gci
+    - gofmt
+    - goimports
 
 linters:
+  default: standard
   enable:
     - bodyclose
-    - megacheck
-    - revive
+    - staticcheck  # replaces megacheck
+    - unused       # replaces megacheck
     - govet
     - unconvert
-    - gas
+    - gosec        # replaces gas
     - gocyclo
     - dupl
     - misspell
     - unparam
-    - typecheck
     - ineffassign
-    - stylecheck
     - gochecknoinits
-    - exportloopref
     - gocritic
     - nakedret
-    - gosimple
     - prealloc
-    - gci
     - errcheck
-    - gofmt
-    - goimports
-  fast: false
-  disable-all: true
-
-issues:
-  exclude-rules:
-    - text: "unexported-return:"
-      linters:
-        - revive
-    - text: 'shadow: declaration of "(err|ctx)" shadows declaration at'
-      linters: [ govet ]
+  settings:
+    goconst:
+      min-len: 2
+      min-occurrences: 2
+    misspell:
+      locale: US
+    lll:
+      line-length: 140
+    gocritic:
+      enabled-tags:
+        - diagnostic
+        - style
+        - performance
+  exclusions:
+    rules:
+      - text: 'shadow: declaration of "(err|ctx)" shadows declaration at'
+        linters: [ govet ]

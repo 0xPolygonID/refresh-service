@@ -62,7 +62,9 @@ func (fh *FlexibleHTTP) Provide(credentialSubject map[string]interface{}) (map[s
 		return nil, errors.Wrapf(ErrDataProviderIssue,
 			"failed http request: %v", err)
 	}
-	defer resp.Body.Close()
+	defer func() {
+		_ = resp.Body.Close()
+	}()
 
 	if resp.StatusCode < 200 || resp.StatusCode >= 300 {
 		return nil, errors.Wrapf(ErrDataProviderIssue,
