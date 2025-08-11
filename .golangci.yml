@@ -30,6 +30,7 @@ linters:
     - nakedret
     - prealloc
     - errcheck
+    - govet
   settings:
     goconst:
       min-len: 2
