@@ -65,18 +65,24 @@ func (is *IssuerService) GetClaimByID(issuerDID, claimID string) (*verifiable.W3
 		return nil, errors.Wrapf(ErrGetClaim,
 			"failed http GET request: '%v'", err)
 	}
-	defer resp.Body.Close()
+	defer func() {
+		_ = resp.Body.Close()
+	}()
+
 	if resp.StatusCode != http.StatusOK {
 		return nil, errors.Wrapf(ErrGetClaim,
 			"invalid status code: '%d'", resp.StatusCode)
 	}
-	credential := &verifiable.W3CCredential{}
-	err = json.NewDecoder(resp.Body).Decode(credential)
+
+	presentation := struct {
+		VC *verifiable.W3CCredential `json:"vc"`
+	}{}
+	err = json.NewDecoder(resp.Body).Decode(&presentation)
 	if err != nil {
-		return credential, errors.Wrapf(ErrGetClaim,
+		return presentation.VC, errors.Wrapf(ErrGetClaim,
 			"failed to decode response: '%v'", err)
 	}
-	return credential, nil
+	return presentation.VC, nil
 }
 
 func (is *IssuerService) CreateCredential(issuerDID string, credentialRequest credentialRequest) (
@@ -114,7 +120,9 @@ func (is *IssuerService) CreateCredential(issuerDID string, credentialRequest cr
 		return id, errors.Wrapf(ErrCreateClaim,
 			"failed http POST request: %v", err)
 	}
-	defer resp.Body.Close()
+	defer func() {
+		_ = resp.Body.Close()
+	}()
 	if resp.StatusCode != http.StatusCreated {
 		return id, errors.Wrap(ErrCreateClaim,
 			"invalid status code")

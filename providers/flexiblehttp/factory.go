@@ -14,6 +14,7 @@ type FactoryFlexibleHTTP struct {
 }
 
 func NewFactoryFlexibleHTTP(configPath string, httpcli *http.Client) (FactoryFlexibleHTTP, error) {
+	//nolint:gosec // configPath is a constant path in the project
 	f, err := os.ReadFile(configPath)
 	if err != nil {
 		return FactoryFlexibleHTTP{}, err

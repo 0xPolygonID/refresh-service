@@ -185,6 +185,7 @@ func NewPackageManager(
 	}
 
 	authV2VerificationKeyPath := fmt.Sprintf("%s/authV2.json", options.VerificationKeyPath)
+	//nolint:gosec // authV2VerificationKeyPath is a constant path in the project
 	verificationKey, err := os.ReadFile(authV2VerificationKeyPath)
 	if err != nil {
 		return nil, errors.Errorf(
