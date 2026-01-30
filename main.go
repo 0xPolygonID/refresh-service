@@ -14,6 +14,7 @@ import (
 	"github.com/kelseyhightower/envconfig"
 	"github.com/piprate/json-gold/ld"
 	"github.com/pkg/errors"
+	"github.com/joho/godotenv"
 )
 
 var (
@@ -72,6 +73,11 @@ func (c *Config) getSupportedIssuers() map[string]string {
 
 func main() {
 	var cfg Config
+	
+	if err := godotenv.Load(); err != nil {
+		log.Info(ctx, "Error loading .env file")
+	}
+	
 	if err := envconfig.Process("", &cfg); err != nil {
 		log.Fatalf("failed init config: %v", err)
 	}
