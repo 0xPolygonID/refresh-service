@@ -75,7 +75,7 @@ func main() {
 	var cfg Config
 	
 	if err := godotenv.Load(); err != nil {
-		log.Info(ctx, "Error loading .env file")
+    log.Printf("Error loading .env file: %v", err)
 	}
 	
 	if err := envconfig.Process("", &cfg); err != nil {
