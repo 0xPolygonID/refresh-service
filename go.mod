@@ -52,6 +52,7 @@ require (
 	github.com/iden3/go-rapidsnark/witness/v2 v2.0.0 // indirect
 	github.com/iden3/go-rapidsnark/witness/wazero v0.0.0-20230524142950-0986cf057d4e // indirect
 	github.com/iden3/merkletree-proof v1.0.1 // indirect
+	github.com/joho/godotenv v1.5.1 // indirect
 	github.com/lestrrat-go/blackmagic v1.0.4 // indirect
 	github.com/lestrrat-go/httpcc v1.0.1 // indirect
 	github.com/lestrrat-go/httprc v1.0.6 // indirect
