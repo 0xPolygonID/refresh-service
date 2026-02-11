@@ -27,4 +27,9 @@ COPY --from=base /build/refresh-service refresh-service
 
 ENV CIRCUITS_FOLDER_PATH=/app/keys
 
-ENTRYPOINT ["/app/refresh-service"]
+# Wrapper
+COPY entrypoint.sh /entrypoint.sh
+RUN chmod 0755 /entrypoint.sh
+
+ENTRYPOINT ["/entrypoint.sh"]
+CMD ["/app/refresh-service"]
